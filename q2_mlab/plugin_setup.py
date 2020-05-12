@@ -13,9 +13,13 @@ import q2_mlab
 from q2_diversity import _beta as beta
 from q2_types.feature_table import FeatureTable, Frequency, RelativeFrequency
 from q2_types.distance_matrix import DistanceMatrix
+from qiime2.plugin import SemanticType
 from q2_types.sample_data import SampleData
 from q2_types.tree import Phylogeny, Rooted
 
+
+
+Target = SemanticType('Target', variant_of=SampleData.field['type'])
 citations = Citations.load('citations.bib', package='q2_mlab')
 
 sklearn_n_jobs_description = (
@@ -53,7 +57,7 @@ plugin.pipelines.register_function(
     },
     outputs=[
         ('filtered_rarefied_table', FeatureTable[Frequency]),
-        #('filtered_metadata', Visualization)
+        ('filtered_metadata', SampleData[Target]),
         ('jaccard_distance_matrix', DistanceMatrix),
         ('bray_curtis_distance_matrix', DistanceMatrix),
         ('jensenshannon_distance_matrix', DistanceMatrix),
@@ -83,8 +87,8 @@ plugin.pipelines.register_function(
     output_descriptions={
         'filtered_rarefied_table': 'The resulting filtered and rarefied '
                                    'feature table.',
-       # 'filtered_metadata': 'The resulting filtered metadata containing '
-       #                      'only the specific target column.',
+        'filtered_metadata': 'The resulting filtered metadata containing '
+                             'only the specific target column.',
         'jaccard_distance_matrix':
             'Matrix of Jaccard distances between pairs of samples.',
         'bray_curtis_distance_matrix':
@@ -109,12 +113,12 @@ plugin.pipelines.register_function(
     function=q2_mlab.benchmark_classify,
     inputs={
         'table': FeatureTable[Frequency],
-        'distance_matrix': DistanceMatrix
+        'distance_matrix': DistanceMatrix,
+        'metadata': SampleData[Target]
     },
     parameters={
         'param_index_start': Int % Range(1, None),
         'param_index_end': Int % Range(1, None),
-        'metadata': Metadata,
         'n_jobs': Int % Range(0, None),
     },
     outputs=[
@@ -124,16 +128,15 @@ plugin.pipelines.register_function(
         'table': 'The feature table containing the samples over which '
                  'diversity metrics should be computed.',
         'distance_matrix': 'Matrix of pairwise distances between samples in '
-                           'the given table.' 
+                           'the given table.',
+        'metadata': 'The sample metadata used filter the table and containing '
+                    'a column for the target variable.'
     },
     parameter_descriptions={
-        'param_index_start': 'The index in the parameter list to begin ' 
+        'param_index_start': 'The index in the parameter list to begin '
                              'benchmarking from.',
-        'param_index_end': 'The index in the parameter list to end ' 
+        'param_index_end': 'The index in the parameter list to end '
                            'benchmarking at.',
-        'metadata': 'The sample metadata used filter the table and containing '
-                    'a column for the target variable.',
-
         'n_jobs': '[beta methods only] - %s' % sklearn_n_jobs_description
     }
     output_descriptions={
