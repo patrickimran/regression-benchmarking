@@ -21,9 +21,6 @@ def preprocess(ctx, table, metadata, phylogeny, sampling_depth,
     filter_samples = ctx.get_action('feature_table', 'filter_samples')
     beta = ctx.get_action('diversity', 'beta')
     beta_phylogenetic = ctx.get_action('diversity', 'beta_phylogenetic')
-    filter_distance_matrix = ctx.get_action('diversity', 'filter_distance_matrix')
-
-    #filter_ids = ctx.get_action('metadata', 'filter_ids')
 
     results = []
     print_datasize(table, metadata)
@@ -45,7 +42,7 @@ def preprocess(ctx, table, metadata, phylogeny, sampling_depth,
     filtered_metadata = metadata.filter_ids(ids_to_keep=ids_to_keep)
     print_datasize(rarefied_table, filtered_metadata)
 
-    # Filter table by samples in metadata 
+    # Filter table by samples in metadata
     filtered_rarefied_table_results = filter_samples(table=rarefied_table, 
                                                      metadata=filtered_metadata)
     filtered_rarefied_table = filtered_rarefied_table_results.filtered_table

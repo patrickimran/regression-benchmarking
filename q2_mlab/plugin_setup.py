@@ -135,7 +135,7 @@ plugin.pipelines.register_function(
                     'a column for the target variable.',
 
         'n_jobs': '[beta methods only] - %s' % sklearn_n_jobs_description
-    },
+    }
     output_descriptions={
         'results_visualization': 'Summary statistics',
     },
