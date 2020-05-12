@@ -22,9 +22,6 @@ def preprocess(ctx, table, metadata, phylogeny, sampling_depth,
     filter_samples = ctx.get_action('feature_table', 'filter_samples')
     beta = ctx.get_action('diversity', 'beta')
     beta_phylogenetic = ctx.get_action('diversity', 'beta_phylogenetic')
-    filter_distance_matrix = ctx.get_action('diversity', 'filter_distance_matrix')
-
-    #filter_ids = ctx.get_action('metadata', 'filter_ids')
 
     results = []
     print_datasize(table, metadata)
@@ -44,6 +41,15 @@ def preprocess(ctx, table, metadata, phylogeny, sampling_depth,
     # Filter metadata by samples in table
     ids_to_keep = rarefied_table.view(biom.Table).ids()
     filtered_metadata = metadata.filter_ids(ids_to_keep=ids_to_keep)
+    df = filtered_metadata.to_dataframe()
+    
+    # metadata categories that are used in this pipeline are assumed to be cleaned upfront
+    # for classification, the only allowed values are 0 and 1
+    # for regression, the allowed values are any real numbers
+    df[target_variable] = pd.to_numeric(df[target_variable], errors='coerce')
+    
+    # drop any samples with NA
+    df.dropna(......)
     print_datasize(rarefied_table, filtered_metadata)
 
     # Filter table by samples in metadata 
