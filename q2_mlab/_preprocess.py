@@ -12,8 +12,9 @@ def print_datasize(table, metadata):
     print("Metadata Shape: " + str(dataframe.shape) + "\n")
 
 def preprocess(ctx, table, metadata, phylogeny, sampling_depth,
-                           min_frequency, target_variable, with_replacement,
-                           n_jobs=1):
+               min_frequency, target_variable, discrete, with_replacement,
+               n_jobs=1):
+
     
     # Define Qiime methods to call
     rarefy = ctx.get_action('feature_table', 'rarefy')
