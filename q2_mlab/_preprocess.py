@@ -21,6 +21,7 @@ def preprocess(ctx, table, metadata, phylogeny, sampling_depth,
     filter_samples = ctx.get_action('feature_table', 'filter_samples')
     beta = ctx.get_action('diversity', 'beta')
     beta_phylogenetic = ctx.get_action('diversity', 'beta_phylogenetic')
+    filter_features = ctx.get_action('fragment-insertion', 'filter-features')
 
     results = []
     print_datasize(table, metadata)
@@ -34,7 +35,7 @@ def preprocess(ctx, table, metadata, phylogeny, sampling_depth,
                              with_replacement=with_replacement)
     print_datasize(rarefied_table, metadata)
 
-    # Filter samples from metadata where NaN in target_variable column 
+    # Filter samples from metadata where NaN in target_variable column
     # TODO
 
     # Filter metadata by samples in table
@@ -64,6 +65,7 @@ def preprocess(ctx, table, metadata, phylogeny, sampling_depth,
                                                metric=metric)
         results += beta_phylo_results
 
-    # TODO Filter table based on ids preserved in phylo distance matrices
+    # TODO Filter table based on ids preserved in phylo distance matrices 
+    # fragment insertion
 
     return tuple(results)
