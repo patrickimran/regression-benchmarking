@@ -10,8 +10,7 @@ from qiime2.plugin import (Plugin, Str, Properties, Choices, Int, Bool, Range,
                            Categorical, Numeric, Citations)
 
 import q2_mlab
-from q2_diversity import _beta as beta
-from q2_types.feature_table import FeatureTable, Frequency, RelativeFrequency
+from q2_types.feature_table import FeatureTable, Frequency
 from q2_types.distance_matrix import DistanceMatrix
 from qiime2.plugin import SemanticType
 from q2_types.sample_data import SampleData
@@ -37,7 +36,7 @@ plugin = Plugin(
     website='https://dev.qiime2.org/',
     package='q2_mlab',
     citations=Citations.load('citations.bib', package='q2_mlab'),
-    description=('This QIIME 2 plugin is in development and does stuff.'),
+    description=('This QIIME 2 plugin is in development and does sweet stuff.'),
     short_description='Plugin for machine learning automated benchmarking.'
 )
 
@@ -53,7 +52,7 @@ plugin.pipelines.register_function(
         'target_variable': Str,
         'metadata': Metadata,
         'with_replacement': Bool,
-        'n_jobs': Int % Range(0, None),
+        'n_jobs': Int % Range(-1, None),
     },
     outputs=[
         ('filtered_rarefied_table', FeatureTable[Frequency]),
@@ -66,8 +65,7 @@ plugin.pipelines.register_function(
         ('weighted_unifrac_distance_matrix', DistanceMatrix),
     ],
     input_descriptions={
-        'table': 'The feature table containing the samples over which '
-                 'diversity metrics should be computed.',
+        'table': 'The 16S or metagenomic feature table.',
         'phylogeny': 'Phylogenetic tree containing tip identifiers that '
                      'correspond to the feature identifiers in the table. '
                      'This tree can contain tip ids that are not present in '
@@ -77,7 +75,7 @@ plugin.pipelines.register_function(
     parameter_descriptions={
         'sampling_depth': 'The total frequency that each sample should be '
                           'rarefied to prior to computing diversity metrics.',
-        'metadata': 'The sample metadata used filter the table and containing '
+        'metadata': 'The sample metadata used to filter the table and containing '
                     'a column for the target variable.',
         'with_replacement': 'Rarefy with replacement by sampling from the '
                             'multinomial distribution instead of rarefying '
@@ -119,7 +117,7 @@ plugin.pipelines.register_function(
     parameters={
         'param_index_start': Int % Range(1, None),
         'param_index_end': Int % Range(1, None),
-        'n_jobs': Int % Range(0, None),
+        'n_jobs': Int % Range(-1, None),
     },
     outputs=[
         ('results_visualization', Visualization),

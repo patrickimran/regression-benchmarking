@@ -12,8 +12,9 @@ def print_datasize(table, metadata):
     print("Metadata Shape: " + str(dataframe.shape) + "\n")
 
 def preprocess(ctx, table, metadata, phylogeny, sampling_depth,
-                           min_frequency, target_variable, with_replacement,
-                           n_jobs=1):
+               min_frequency, target_variable, discrete, with_replacement,
+               n_jobs=1):
+
     
     # Define Qiime methods to call
     rarefy = ctx.get_action('feature_table', 'rarefy')
@@ -41,6 +42,15 @@ def preprocess(ctx, table, metadata, phylogeny, sampling_depth,
     # Filter metadata by samples in table
     ids_to_keep = rarefied_table.view(biom.Table).ids()
     filtered_metadata = metadata.filter_ids(ids_to_keep=ids_to_keep)
+    df = filtered_metadata.to_dataframe()
+    
+    # metadata categories that are used in this pipeline are assumed to be cleaned upfront
+    # for classification, the only allowed values are 0 and 1
+    # for regression, the allowed values are any real numbers
+    df[target_variable] = pd.to_numeric(df[target_variable], errors='coerce')
+    
+    # drop any samples with NA
+    df.dropna(......)
     print_datasize(rarefied_table, filtered_metadata)
 
     # Filter table by samples in metadata
