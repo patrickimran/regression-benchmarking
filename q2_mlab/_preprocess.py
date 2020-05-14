@@ -43,6 +43,7 @@ def preprocess(ctx, table, metadata, phylogeny, sampling_depth,
     print_datasize(table, filteredmetadata)
 
     # Filter samples from metadata where NaN in target_variable column
+    # Reduce Metadata to 1 column mapping of sample-id to target
     df = filteredmetadata.to_dataframe()
     clean_subset_df = clean_metadata(df=df, target_variable=target_variable,
                                      discrete=discrete)
