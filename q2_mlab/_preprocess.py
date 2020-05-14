@@ -14,20 +14,20 @@ def clean_metadata(df: pd.DataFrame, target_variable, discrete):
     # metadata categories that are used in this pipeline are assumed to be
     # cleaned upfront. For classification, the only allowed values are 0 and 1.
     # For regression, the allowed values are any real numbers
-    df.dropna(axis=0, subset=[target_variable], inplace=True)
     # Enforce numeric for continuous variables
     if not discrete:
         df[target_variable] = pd.to_numeric(df[target_variable],
                                             errors='coerce')
     subset_df = df.loc[:, [target_variable]]
+    df.dropna(axis=0, subset=[target_variable], inplace=True)
     return subset_df
 
 
 def preprocess(ctx, table, metadata, phylogeny, sampling_depth,
-               min_frequency, target_variable, discrete, with_replacement,
+               min_frequency, target_variable, discrete, with_replacement=False,
                n_jobs=1):
 
-    # Define Qiime methods to call
+    # Define QIIME2 methods to call
     rarefy = ctx.get_action('feature_table', 'rarefy')
     filter_min_features = ctx.get_action('feature_table', 'filter_features')
     filter_samples = ctx.get_action('feature_table', 'filter_samples')
@@ -92,7 +92,7 @@ def preprocess(ctx, table, metadata, phylogeny, sampling_depth,
     for metric in ['unweighted_unifrac', 'weighted_unifrac']:
         beta_phylo_results = beta_phylogenetic(table=filtered_rarefied_table,
                                                phylogeny=phylogeny,
-                                               metric=metric)
+                                               metric=metric, n_jobs=n_jobs)
         results += beta_phylo_results
 
     return tuple(results)
