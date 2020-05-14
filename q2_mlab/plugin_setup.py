@@ -5,20 +5,15 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
-from qiime2.plugin import (Plugin, Str, Properties, Choices, Int, Bool, Range,
-                           Float, Set, Visualization, Metadata, MetadataColumn,
-                           Categorical, Numeric, Citations)
-
+from qiime2.plugin import (Plugin, Str, Int, Bool, Range, Visualization,
+                           Metadata, Citations, SemanticType)
 import q2_mlab
+from q2_sample_classifier import PredictionsDirectoryFormat
 from q2_types.feature_table import FeatureTable, Frequency
 from q2_types.distance_matrix import DistanceMatrix
-from qiime2.plugin import SemanticType
 from q2_types.sample_data import SampleData
 from q2_types.tree import Phylogeny, Rooted
 
-
-
-Target = SemanticType('Target', variant_of=SampleData.field['type'])
 citations = Citations.load('citations.bib', package='q2_mlab')
 
 sklearn_n_jobs_description = (
@@ -32,13 +27,22 @@ sklearn_n_jobs_description = (
 
 plugin = Plugin(
     name='mlab',
-    version='1.0.0', #q2_mlab.__version__,
+    version=q2_mlab.__version__,
     website='https://dev.qiime2.org/',
     package='q2_mlab',
     citations=Citations.load('citations.bib', package='q2_mlab'),
-    description=('This QIIME 2 plugin is in development and does sweet stuff.'),
+    description=('This QIIME 2 plugin is in development'
+                 ' and does sweet stuff.'),
     short_description='Plugin for machine learning automated benchmarking.'
 )
+
+Target = SemanticType('Target', variant_of=SampleData.field['type'])
+plugin.register_semantic_types(Target)
+plugin.register_semantic_type_to_format(
+    SampleData[Target],
+    artifact_format=PredictionsDirectoryFormat
+)
+
 
 plugin.pipelines.register_function(
     function=q2_mlab.preprocess,
@@ -47,10 +51,11 @@ plugin.pipelines.register_function(
         'phylogeny': Phylogeny[Rooted]
     },
     parameters={
+        'metadata': Metadata,
         'sampling_depth': Int % Range(1, None),
         'min_frequency': Int % Range(1, None),
         'target_variable': Str,
-        'metadata': Metadata,
+        'discrete': Bool,
         'with_replacement': Bool,
         'n_jobs': Int % Range(-1, None),
     },
@@ -73,14 +78,20 @@ plugin.pipelines.register_function(
                      'present in this tree.'
     },
     parameter_descriptions={
+        'metadata': 'The sample metadata (tsv) used to filter the table and '
+                    'containing a column for the target variable.',
         'sampling_depth': 'The total frequency that each sample should be '
                           'rarefied to prior to computing diversity metrics.',
-        'metadata': 'The sample metadata used to filter the table and containing '
-                    'a column for the target variable.',
+        'min_frequency': 'The minimum frequency that a feature should have '
+                         'to be maintained.',
+        'target_variable': 'The metadata column containing the variable of '
+                           'interest for this learning task.',
+        'discrete': 'Set True if target_variable is a discrete variable '
+                    '(for Classification), False if continuous (Regression)',
         'with_replacement': 'Rarefy with replacement by sampling from the '
                             'multinomial distribution instead of rarefying '
                             'without replacement.',
-        'n_jobs': '[beta methods only] - %s' % sklearn_n_jobs_description
+        'n_jobs': sklearn_n_jobs_description
     },
     output_descriptions={
         'filtered_rarefied_table': 'The resulting filtered and rarefied '
@@ -136,7 +147,7 @@ plugin.pipelines.register_function(
         'param_index_end': 'The index in the parameter list to end '
                            'benchmarking at.',
         'n_jobs': '[beta methods only] - %s' % sklearn_n_jobs_description
-    }
+    },
     output_descriptions={
         'results_visualization': 'Summary statistics',
     },

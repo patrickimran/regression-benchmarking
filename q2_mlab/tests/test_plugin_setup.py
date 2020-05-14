@@ -10,6 +10,7 @@ import unittest
 
 from q2_mlab.plugin_setup import plugin as mlab_plugin
 
+
 class PluginSetupTests(unittest.TestCase):
 
     def test_plugin_setup(self):
