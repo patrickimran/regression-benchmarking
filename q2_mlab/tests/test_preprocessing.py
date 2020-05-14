@@ -1,12 +1,8 @@
-from os import path
-import tempfile
-
-from qiime2.plugin.testing import TestPluginBase
-
 import pandas as pd
 from qiime2 import Artifact, Metadata
-
+from os import path
 from q2_mlab._preprocess import clean_metadata
+from qiime2.plugin.testing import TestPluginBase
 
 
 class PreprocessingTests(TestPluginBase):
@@ -32,10 +28,16 @@ class PreprocessingTests(TestPluginBase):
                                          name='id'))
         self.discrete_metadata = discrete_metadata
 
-        self.mp_sample_metadata = Metadata.load('data/sample-metadata.tsv')
-        self.mp_table = Artifact.load('data/table.qza')
-        self.mp_rooted_tree = Artifact.load('data/rooted-tree.qza')
-        self.mp_unrooted_tree = Artifact.load('data/unrooted-tree.qza')
+        TEST_DIR = path.split(__file__)[0]
+        sample_metadata_path = path.join(TEST_DIR, 'data/sample-metadata.tsv')
+        table_path = path.join(TEST_DIR, 'data/table.qza')
+        rooted_tree_path = path.join(TEST_DIR, 'data/rooted-tree.qza')
+        unrooted_tree_path = path.join(TEST_DIR, 'data/unrooted-tree.qza')
+
+        self.mp_sample_metadata = Metadata.load(sample_metadata_path)
+        self.mp_table = Artifact.load(table_path)
+        self.mp_rooted_tree = Artifact.load(rooted_tree_path)
+        self.mp_unrooted_tree = Artifact.load(unrooted_tree_path)
 
     def test_preprocess_output(self):
 
