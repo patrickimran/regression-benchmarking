@@ -15,17 +15,22 @@ def clean_metadata(df: pd.DataFrame, target_variable, discrete):
     # cleaned upfront. For classification, the only allowed values are 0 and 1.
     # For regression, the allowed values are any real numbers
     # Enforce numeric for continuous variables
-    if not discrete:
-        df[target_variable] = pd.to_numeric(df[target_variable],
-                                            errors='coerce')
+    df[target_variable] = pd.to_numeric(df[target_variable],
+                                        errors='coerce')
+
     subset_df = df.loc[:, [target_variable]]
-    df.dropna(axis=0, subset=[target_variable], inplace=True)
+    subset_df.dropna(axis=0, subset=[target_variable], inplace=True)
+
+    if discrete:
+        val_set = set(subset_df[target_variable].unique())
+        if not val_set == {1, 0}:
+            raise ValueError('For classification, the only allowed values '
+                             'in the target column are 0 and 1')
     return subset_df
 
 
-def preprocess(ctx, table, metadata, phylogeny, sampling_depth,
-               min_frequency, target_variable, discrete, with_replacement=False,
-               n_jobs=1):
+def preprocess(ctx, table, metadata, phylogeny, sampling_depth, min_frequency,
+               target_variable, discrete, with_replacement=False, n_jobs=1):
 
     # Define QIIME2 methods to call
     rarefy = ctx.get_action('feature_table', 'rarefy')
