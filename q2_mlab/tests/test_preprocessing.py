@@ -3,7 +3,7 @@ from qiime2 import Artifact, Metadata
 from os import path
 from q2_mlab._preprocess import clean_metadata
 from qiime2.plugin.testing import TestPluginBase
-import pytest
+from pandas.testing import assert_series_equal
 
 
 class PreprocessingTests(TestPluginBase):
@@ -68,33 +68,56 @@ class PreprocessingTests(TestPluginBase):
                                   target_variable='target',
                                   discrete=False)
         self.assertTupleEqual(clean_df.shape, (4, 1))
-        self.assertIsInstance(clean_df['target'][0], (int, float))
-        self.assertIsInstance(clean_df['target'][1], (int, float))
-        self.assertIsInstance(clean_df['target'][2], (int, float))
-        self.assertIsInstance(clean_df['target'][3], (int, float))
+        expected_series = pd.Series(data=[1.0, 2.0, 3.0, 4.0],
+                                    index=pd.Index(['A', 'B', 'C', 'D'],
+                                    name='id'),
+                                    name='target')
+        assert_series_equal(clean_df['target'], expected_series)
 
         clean_df2 = clean_metadata(self.continuous_metadata,
                                    target_variable='contain_nan',
                                    discrete=False)
         self.assertTupleEqual(clean_df2.shape, (3, 1))
+        expected_series = pd.Series(data=[3.3, 3.5, 3.9],
+                                    index=pd.Index(['A', 'B', 'D'],
+                                    name='id'),
+                                    name='contain_nan')
+        assert_series_equal(clean_df2['contain_nan'], expected_series)
 
     def test_clean_metadata_discrete(self):
         clean_df = clean_metadata(self.discrete_metadata,
                                   target_variable='target_int',
                                   discrete=True)
         self.assertTupleEqual(clean_df.shape, (4, 1))
+        expected_series = pd.Series(data=[1, 0, 1, 0],
+                                    index=pd.Index(['A', 'B', 'C', 'D'],
+                                    name='id'),
+                                    name='target_int')
+        assert_series_equal(clean_df['target_int'], expected_series)
 
         clean_df2 = clean_metadata(self.discrete_metadata,
                                    target_variable='target',
                                    discrete=True)
         self.assertTupleEqual(clean_df2.shape, (4, 1))
+        expected_series = pd.Series(data=[0, 1, 0, 1],
+                                    index=pd.Index(['A', 'B', 'C', 'D'],
+                                    name='id'),
+                                    name='target')
+        assert_series_equal(clean_df2['target'], expected_series)
 
         clean_df3 = clean_metadata(self.discrete_metadata,
                                    target_variable='contain_nan',
                                    discrete=True)
         self.assertTupleEqual(clean_df3.shape, (3, 1))
+        expected_series = pd.Series(data=[0.0, 1.0, 1.0],
+                                    index=pd.Index(['A', 'B', 'D'],
+                                    name='id'),
+                                    name='contain_nan')
+        assert_series_equal(clean_df3['contain_nan'], expected_series)
 
-        with pytest.raises(ValueError):
-            assert clean_metadata(self.discrete_metadata,
-                                  target_variable='non_encoded',
-                                  discrete=True)
+        with self.assertRaisesRegex(ValueError,
+                                    'For classification, the only allowed '
+                                    'values in the target column are 0 and 1'):
+            clean_metadata(self.discrete_metadata,
+                           target_variable='non_encoded',
+                           discrete=True)
