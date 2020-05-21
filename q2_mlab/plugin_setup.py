@@ -7,6 +7,9 @@ from q2_types.distance_matrix import DistanceMatrix
 from q2_types.sample_data import SampleData
 from q2_types.tree import Phylogeny, Rooted
 
+from _format import (ResultsFormat, ResultsDirectoryFormat)
+from _type import (Results)
+
 citations = Citations.load('citations.bib', package='q2_mlab')
 
 sklearn_n_jobs_description = (
@@ -119,12 +122,12 @@ plugin.pipelines.register_function(
         'metadata': SampleData[Target]
     },
     parameters={
-        'param_index_start': Int % Range(1, None),
-        'param_index_end': Int % Range(1, None),
+        'classifier': Str,
+        'params': Str,
         'n_jobs': Int % Range(-1, None),
     },
     outputs=[
-        ('results_visualization', Visualization),
+        ('result_table', SampleData[Results]),
     ],
     input_descriptions={
         'table': 'The feature table containing the samples over which '
@@ -135,14 +138,12 @@ plugin.pipelines.register_function(
                     'a column for the target variable.'
     },
     parameter_descriptions={
-        'param_index_start': 'The index in the parameter list to begin '
-                             'benchmarking from.',
-        'param_index_end': 'The index in the parameter list to end '
-                           'benchmarking at.',
-        'n_jobs': '[beta methods only] - %s' % sklearn_n_jobs_description
+        'classifier': 'Name of the Scikit-Learn classification model to use.',
+        'params': 'The input parameters',
+        'n_jobs': sklearn_n_jobs_description
     },
     output_descriptions={
-        'results_visualization': 'Summary statistics',
+        'result_table': 'Output predictions and performance measures.',
     },
     name='Dataset preprocessing for benchmarking',
     description=('Applies filtering and preprocessing steps '
