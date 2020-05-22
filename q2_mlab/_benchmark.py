@@ -23,8 +23,8 @@ from sklearn.ensemble import GradientBoostingClassifier
 from xgboost import XGBRegressor, XGBClassifier
 
 
-def benchmark_classify(ctx, table, metadata, classifier, distance_matrix,
-                       params, n_jobs):
+def benchmark_classify(ctx, table, metadata, classifier, params, n_jobs,
+                       distance_matrix=None,):
 
     classifiers = {
         "KNeighborsClassifier": KNeighborsClassifier,  # TODO metric names
