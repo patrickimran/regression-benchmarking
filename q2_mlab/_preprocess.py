@@ -45,7 +45,7 @@ def preprocess(ctx, table, metadata, sampling_depth, min_frequency,
     # Filter table by samples present in metadata
     filtered_table, = filter_samples(table=table, metadata=metadata)
     # Filter metadata by samples in table
-    ids_to_keep = table.view(biom.Table).ids()
+    ids_to_keep = filtered_table.view(biom.Table).ids()
     filteredmetadata = metadata.filter_ids(ids_to_keep=ids_to_keep)
 
     # Filter samples from metadata where NaN in target_variable column
