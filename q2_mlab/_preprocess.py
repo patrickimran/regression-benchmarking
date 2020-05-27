@@ -40,12 +40,13 @@ def preprocess(ctx, table, metadata, phylogeny, sampling_depth, min_frequency,
     beta_phylogenetic = ctx.get_action('diversity', 'beta_phylogenetic')
     filter_features = ctx.get_action('fragment-insertion', 'filter_features')
     results = []
+    print("Initial datasize:")
     print_datasize(table, metadata)
+
 
     # Filter metadata by samples in table
     ids_to_keep = table.view(biom.Table).ids()
     filteredmetadata = metadata.filter_ids(ids_to_keep=ids_to_keep)
-    print_datasize(table, filteredmetadata)
 
     # Filter samples from metadata where NaN in target_variable column
     # Reduce Metadata to 1 column mapping of sample-id to target
@@ -54,22 +55,26 @@ def preprocess(ctx, table, metadata, phylogeny, sampling_depth, min_frequency,
                                      discrete=discrete)
     target_mapping = Metadata(clean_subset_df)
 
+    print("Filtering features that do not exist in phylogeny:")
     # Filter features that do not exist in phylogeny
     phylo_filtered_results = filter_features(table=table, tree=phylogeny)
     phylo_filtered_table = phylo_filtered_results.filtered_table
     print_datasize(phylo_filtered_table, metadata)
 
+    print("Filtering low-abundance features from table:")
     # Filter low-abundance features from table
     filtered_table, = filter_min_features(table=phylo_filtered_table,
                                           min_frequency=min_frequency)
     print_datasize(filtered_table, metadata)
 
+    print("Rarefying table to sampling_depth")
     # Rarefy table to sampling_depth
     rarefied_table, = rarefy(table=filtered_table,
                              sampling_depth=sampling_depth,
                              with_replacement=with_replacement)
     print_datasize(rarefied_table, metadata)
 
+    print("Filtering table by samples in metadata")
     # Filter table by samples in metadata
     filtered_rarefied_table_results = filter_samples(table=rarefied_table,
                                                      metadata=filteredmetadata)
