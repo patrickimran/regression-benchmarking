@@ -54,10 +54,6 @@ plugin.pipelines.register_function(
     outputs=[
         ('filtered_rarefied_table', FeatureTable[Frequency]),
         ('filtered_metadata', SampleData[Target]),
-        ('jaccard_distance_matrix', DistanceMatrix),
-        ('bray_curtis_distance_matrix', DistanceMatrix),
-        ('jensenshannon_distance_matrix', DistanceMatrix),
-        ('aitchison_distance_matrix', DistanceMatrix),
     ],
     input_descriptions={
         'table': 'The 16S or metagenomic feature table.',
@@ -83,14 +79,6 @@ plugin.pipelines.register_function(
                                    'feature table.',
         'filtered_metadata': 'The resulting filtered metadata containing '
                              'only the specific target column.',
-        'jaccard_distance_matrix':
-            'Matrix of Jaccard distances between pairs of samples.',
-        'bray_curtis_distance_matrix':
-            'Matrix of Bray-Curtis distances between pairs of samples.',
-        'jensenshannon_distance_matrix':
-            'Matrix of Jensen-Shannon distances between pairs of samples.',
-        'aitchison_distance_matrix':
-            'Matrix of aitchison distances between pairs of samples.',
     },
     name='Dataset preprocessing for benchmarking',
     description=('Applies filtering and preprocessing steps '
