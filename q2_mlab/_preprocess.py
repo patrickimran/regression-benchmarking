@@ -41,6 +41,9 @@ def preprocess(ctx, table, metadata, sampling_depth, min_frequency,
     print("Initial datasize:")
     print_datasize(table, metadata)
 
+    print("Filtering table by samples in metadata")
+    # Filter table by samples present in metadata
+    filtered_table, = filter_samples(table=table, metadata=metadata)
     # Filter metadata by samples in table
     ids_to_keep = table.view(biom.Table).ids()
     filteredmetadata = metadata.filter_ids(ids_to_keep=ids_to_keep)
@@ -54,7 +57,7 @@ def preprocess(ctx, table, metadata, sampling_depth, min_frequency,
 
     print("Filtering low-abundance features from table:")
     # Filter low-abundance features from table
-    filtered_table, = filter_min_features(table=table,
+    filtered_table, = filter_min_features(table=filtered_table,
                                           min_frequency=min_frequency)
     print_datasize(filtered_table, metadata)
 
