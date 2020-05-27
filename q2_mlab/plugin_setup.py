@@ -59,8 +59,6 @@ plugin.pipelines.register_function(
         ('bray_curtis_distance_matrix', DistanceMatrix),
         ('jensenshannon_distance_matrix', DistanceMatrix),
         ('aitchison_distance_matrix', DistanceMatrix),
-        ('unweighted_unifrac_distance_matrix', DistanceMatrix),
-        ('weighted_unifrac_distance_matrix', DistanceMatrix),
     ],
     input_descriptions={
         'table': 'The 16S or metagenomic feature table.',
@@ -99,10 +97,6 @@ plugin.pipelines.register_function(
             'Matrix of Jensen-Shannon distances between pairs of samples.',
         'aitchison_distance_matrix':
             'Matrix of aitchison distances between pairs of samples.',
-        'unweighted_unifrac_distance_matrix':
-            'Matrix of unweighted UniFrac distances between pairs of samples.',
-        'weighted_unifrac_distance_matrix':
-            'Matrix of weighted UniFrac distances between pairs of samples.',
     },
     name='Dataset preprocessing for benchmarking',
     description=('Applies filtering and preprocessing steps '

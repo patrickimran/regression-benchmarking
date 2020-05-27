@@ -43,7 +43,6 @@ def preprocess(ctx, table, metadata, phylogeny, sampling_depth, min_frequency,
     print("Initial datasize:")
     print_datasize(table, metadata)
 
-
     # Filter metadata by samples in table
     ids_to_keep = table.view(biom.Table).ids()
     filteredmetadata = metadata.filter_ids(ids_to_keep=ids_to_keep)
@@ -99,10 +98,5 @@ def preprocess(ctx, table, metadata, phylogeny, sampling_depth, min_frequency,
         beta_results = beta(table=filtered_rarefied_table, metric=metric,
                             n_jobs=n_jobs)
         results += beta_results
-    for metric in ['unweighted_unifrac', 'weighted_unifrac']:
-        beta_phylo_results = beta_phylogenetic(table=filtered_rarefied_table,
-                                               phylogeny=phylogeny,
-                                               metric=metric, n_jobs=n_jobs)
-        results += beta_phylo_results
 
     return tuple(results)

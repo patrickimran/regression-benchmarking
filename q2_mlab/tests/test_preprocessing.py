@@ -51,17 +51,13 @@ class PreprocessingTests(TestPluginBase):
                                   discrete=True,
                                   with_replacement=False,
                                   n_jobs=1)
-        self.assertEqual(len(results), 8)
+        self.assertEqual(len(results), 6)
         self.assertTrue(str(results[0].type) == 'FeatureTable[Frequency]')
         self.assertTrue(str(results[1].type) == 'SampleData[Target]')
         self.assertTrue(str(results[2].type) == 'DistanceMatrix')
         self.assertTrue(str(results[3].type) == 'DistanceMatrix')
         self.assertTrue(str(results[4].type) == 'DistanceMatrix')
         self.assertTrue(str(results[5].type) == 'DistanceMatrix')
-
-        phylo_dm_string = "DistanceMatrix % Properties('phylogenetic')"
-        self.assertTrue(str(results[6].type) == phylo_dm_string)
-        self.assertTrue(str(results[7].type) == phylo_dm_string)
 
     def test_clean_metadata_continuous(self):
         clean_df = clean_metadata(self.continuous_metadata,
