@@ -41,7 +41,6 @@ plugin.pipelines.register_function(
     function=q2_mlab.preprocess,
     inputs={
         'table': FeatureTable[Frequency],
-        'phylogeny': Phylogeny[Rooted]
     },
     parameters={
         'metadata': Metadata,
@@ -62,11 +61,6 @@ plugin.pipelines.register_function(
     ],
     input_descriptions={
         'table': 'The 16S or metagenomic feature table.',
-        'phylogeny': 'Phylogenetic tree containing tip identifiers that '
-                     'correspond to the feature identifiers in the table. '
-                     'This tree can contain tip ids that are not present in '
-                     'the table, but all feature ids in the table must be '
-                     'present in this tree.'
     },
     parameter_descriptions={
         'metadata': 'The sample metadata (tsv) used to filter the table and '

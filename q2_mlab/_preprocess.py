@@ -29,7 +29,7 @@ def clean_metadata(df: pd.DataFrame, target_variable, discrete):
     return subset_df
 
 
-def preprocess(ctx, table, metadata, phylogeny, sampling_depth, min_frequency,
+def preprocess(ctx, table, metadata, sampling_depth, min_frequency,
                target_variable, discrete, with_replacement=False, n_jobs=1):
 
     # Define QIIME2 methods to call
