@@ -78,7 +78,7 @@ def preprocess(ctx, table, metadata, sampling_depth, min_frequency,
     results += filtered_rarefied_table_results
 
     # Refilter target_mapping by samples in table
-    ids_to_keep = table.view(biom.Table).ids()
+    ids_to_keep = filtered_rarefied_table.view(biom.Table).ids()
     target_mapping = target_mapping.filter_ids(ids_to_keep=ids_to_keep)
 
     # Some transformations to get data into correct format for artifact
