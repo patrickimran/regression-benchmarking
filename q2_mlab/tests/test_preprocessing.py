@@ -44,7 +44,6 @@ class PreprocessingTests(TestPluginBase):
 
         results = self.preprocess(table=self.mp_table,
                                   metadata=self.mp_sample_metadata,
-                                  phylogeny=self.mp_rooted_tree,
                                   sampling_depth=1000,
                                   min_frequency=10,
                                   target_variable="body-site",

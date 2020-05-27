@@ -37,8 +37,6 @@ def preprocess(ctx, table, metadata, sampling_depth, min_frequency,
     filter_min_features = ctx.get_action('feature_table', 'filter_features')
     filter_samples = ctx.get_action('feature_table', 'filter_samples')
     beta = ctx.get_action('diversity', 'beta')
-    beta_phylogenetic = ctx.get_action('diversity', 'beta_phylogenetic')
-    filter_features = ctx.get_action('fragment-insertion', 'filter_features')
     results = []
     print("Initial datasize:")
     print_datasize(table, metadata)
@@ -54,15 +52,9 @@ def preprocess(ctx, table, metadata, sampling_depth, min_frequency,
                                      discrete=discrete)
     target_mapping = Metadata(clean_subset_df)
 
-    print("Filtering features that do not exist in phylogeny:")
-    # Filter features that do not exist in phylogeny
-    phylo_filtered_results = filter_features(table=table, tree=phylogeny)
-    phylo_filtered_table = phylo_filtered_results.filtered_table
-    print_datasize(phylo_filtered_table, metadata)
-
     print("Filtering low-abundance features from table:")
     # Filter low-abundance features from table
-    filtered_table, = filter_min_features(table=phylo_filtered_table,
+    filtered_table, = filter_min_features(table=table,
                                           min_frequency=min_frequency)
     print_datasize(filtered_table, metadata)
 
