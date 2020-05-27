@@ -77,10 +77,12 @@ def preprocess(ctx, table, metadata, sampling_depth, min_frequency,
 
     results += filtered_rarefied_table_results
 
+    print("Refiltering target_mapping by samples in table")
     # Refilter target_mapping by samples in table
     ids_to_keep = filtered_rarefied_table.view(biom.Table).ids()
     target_mapping = target_mapping.filter_ids(ids_to_keep=ids_to_keep)
 
+    print("Some transformations to get data into correct format for artifact")
     # Some transformations to get data into correct format for artifact
     target_mapping_col = target_mapping.get_column(target_variable)
     target_mapping_series = target_mapping_col.to_series()
@@ -88,4 +90,6 @@ def preprocess(ctx, table, metadata, sampling_depth, min_frequency,
                                                 target_mapping_series)
     results += [target_mapping_artifact]
 
+    print("Not generating any distance matrices...")
+    
     return tuple(results)
