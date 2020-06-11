@@ -6,10 +6,10 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-from ..plugin_setup import plugin
 from . import ResultsDirectoryFormat
 from qiime2 import Metadata
 import pandas as pd
+from plugin_setup import plugin
 
 
 @plugin.register_transformer

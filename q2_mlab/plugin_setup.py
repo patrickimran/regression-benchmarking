@@ -1,14 +1,13 @@
 from qiime2.plugin import (Plugin, Str, Int, Bool, Range, Visualization,
-                           Metadata, Citations, SemanticType)
+                           Metadata, Citations, SemanticType, Choices)
 import q2_mlab
-from q2_sample_classifier import PredictionsDirectoryFormat
 from q2_types.feature_table import FeatureTable, Frequency
 from q2_types.distance_matrix import DistanceMatrix
 from q2_types.sample_data import SampleData
 from q2_types.tree import Phylogeny, Rooted
-
-from _format import (ResultsFormat, ResultsDirectoryFormat)
-from _type import (Results)
+from q2_sample_classifier import PredictionsDirectoryFormat
+from q2_mlab._type import Target, Results
+from q2_mlab._format import ResultsFormat, ResultsDirectoryFormat
 
 citations = Citations.load('citations.bib', package='q2_mlab')
 
@@ -32,11 +31,19 @@ plugin = Plugin(
     short_description='Plugin for machine learning automated benchmarking.'
 )
 
-Target = SemanticType('Target', variant_of=SampleData.field['type'])
+
+plugin.register_formats(ResultsFormat, ResultsDirectoryFormat)
+
 plugin.register_semantic_types(Target)
 plugin.register_semantic_type_to_format(
     SampleData[Target],
     artifact_format=PredictionsDirectoryFormat
+)
+
+plugin.register_semantic_types(Results)
+plugin.register_semantic_type_to_format(
+    SampleData[Results],
+    artifact_format=ResultsDirectoryFormat
 )
 
 
@@ -115,14 +122,14 @@ plugin.pipelines.register_function(
 )
 
 plugin.pipelines.register_function(
-    function=q2_mlab.benchmark_classify,
+    function=q2_mlab.unit_benchmark,
     inputs={
         'table': FeatureTable[Frequency],
         'distance_matrix': DistanceMatrix,
         'metadata': SampleData[Target]
     },
     parameters={
-        'classifier': Str,
+        'algorithm': Str % Choices(['qtof', 'orbitrap', 'fticr']), # TODO choices
         'params': Str,
         'n_jobs': Int % Range(-1, None),
     },
@@ -138,16 +145,17 @@ plugin.pipelines.register_function(
                     'a column for the target variable.'
     },
     parameter_descriptions={
-        'classifier': 'Name of the Scikit-Learn classification model to use.',
-        'params': 'The input parameters',
+        'algorithm': 'Name of the Scikit-Learn supervised learning model to '
+                     'use. Classification or Regression will be determined '
+                     'according to the given algorithm.',
+        'params': 'The input parameters as a JSON string.',
         'n_jobs': sklearn_n_jobs_description
     },
     output_descriptions={
         'result_table': 'Output predictions and performance measures.',
     },
-    name='Dataset preprocessing for benchmarking',
-    description=('Applies filtering and preprocessing steps '
-                 'to a feature table and metadata, and '
-                 'generates distance matrices with phylo- '
-                 'genetic and non-phylogenetic metrics.')
+    name='Unit benchmarking script for evaluating one model/hyperparameter set',
+    description=('Conducts cross validation and computation of metrics for '
+                 'evaluating one model with one hyperparameter set, given as '
+                 'input. ')
 )

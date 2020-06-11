@@ -8,14 +8,6 @@
 
 from qiime2.plugin import SemanticType
 from q2_types.sample_data import SampleData
-from plugin_setup import plugin
-from . import ResultsDirectoryFormat
 
+Target = SemanticType('Target', variant_of=SampleData.field['type'])
 Results = SemanticType('Results', variant_of=SampleData.field['type'])
-
-plugin.register_semantic_types(Results)
-
-plugin.register_semantic_type_to_format(
-    SampleData[Results],
-    artifact_format=ResultsDirectoryFormat
-)

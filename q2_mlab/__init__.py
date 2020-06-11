@@ -7,10 +7,16 @@
 # ----------------------------------------------------------------------------
 
 from ._preprocess import preprocess
-from ._benchmark import benchmark_classify
+from ._benchmark import unit_benchmark
 from ._version import get_versions
 
 __version__ = get_versions()['version']
+
 del get_versions
 
-__all__ = ['preprocess', 'benchmark_classify']
+from ._type import Target, Results
+from ._format import ResultsDirectoryFormat, ResultsFormat
+
+
+__all__ = ['preprocess', 'unit_benchmark', 'ResultsDirectoryFormat', 
+           'ResultsFormat', 'Target', 'Results']

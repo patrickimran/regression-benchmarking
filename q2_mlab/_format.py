@@ -10,8 +10,6 @@ import csv
 
 import qiime2.plugin.model as model
 from qiime2.plugin import ValidationError
-from plugin_setup import plugin
-
 
 class ResultsFormat(model.TextFileFormat):
     def _validate_(self, level):
@@ -25,5 +23,3 @@ class ResultsFormat(model.TextFileFormat):
 ResultsDirectoryFormat = model.SingleFileDirectoryFormat(
     'ResultsDirectoryFormat', 'results.tsv',
     ResultsFormat)
-
-plugin.register_formats(ResultsFormat, ResultsDirectoryFormat)
