@@ -1,5 +1,7 @@
 from qiime2.plugin import (Plugin, Str, Int, Bool, Range, Visualization,
                            Metadata, Citations, SemanticType, Choices)
+import pandas as pd
+import importlib
 import q2_mlab
 from q2_types.feature_table import FeatureTable, Frequency
 from q2_types.distance_matrix import DistanceMatrix
@@ -31,7 +33,6 @@ plugin = Plugin(
     short_description='Plugin for machine learning automated benchmarking.'
 )
 
-
 plugin.register_formats(ResultsFormat, ResultsDirectoryFormat)
 
 plugin.register_semantic_types(Target)
@@ -45,7 +46,6 @@ plugin.register_semantic_type_to_format(
     SampleData[Results],
     artifact_format=ResultsDirectoryFormat
 )
-
 
 plugin.pipelines.register_function(
     function=q2_mlab.preprocess,
@@ -121,7 +121,21 @@ plugin.pipelines.register_function(
                  'genetic and non-phylogenetic metrics.')
 )
 
-plugin.pipelines.register_function(
+algorithm_choices = [
+    "KNeighborsClassifier",
+    "RandomForestClassifier",
+    "GradientBoostingClassifier",
+    "XGBClassifier",
+    "LinearSVC",
+
+    "KNeighborsRegressor",
+    "RandomForestRegressor",
+    "GradientBoostingRegressor",
+    "XGBRegressor",
+    "LinearSVR",
+]
+
+plugin.methods.register_function(
     function=q2_mlab.unit_benchmark,
     inputs={
         'table': FeatureTable[Frequency],
@@ -129,7 +143,7 @@ plugin.pipelines.register_function(
         'metadata': SampleData[Target]
     },
     parameters={
-        'algorithm': Str % Choices(['qtof', 'orbitrap', 'fticr']), # TODO choices
+        'algorithm': Str % Choices(algorithm_choices),
         'params': Str,
         'n_jobs': Int % Range(-1, None),
     },
@@ -159,3 +173,5 @@ plugin.pipelines.register_function(
                  'evaluating one model with one hyperparameter set, given as '
                  'input. ')
 )
+
+importlib.import_module('q2_mlab._transformer')

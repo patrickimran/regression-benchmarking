@@ -23,37 +23,29 @@ from sklearn.ensemble import GradientBoostingClassifier
 from xgboost import XGBRegressor, XGBClassifier
 from sklearn.svm import SVR, SVC, LinearSVR, LinearSVC
 
-class LearningTask():
-    
-    learner_mapping = {
-        "KNeighborsClassifier": KNeighborsClassifier,
-        "RandomForestClassifier": RandomForestClassifier,
-        "GradientBoostingClassifier": GradientBoostingClassifier,
-        "XGBClassifier": XGBClassifier,
-        "KNeighborsRegressor": KNeighborsRegressor,
-        "RandomForestRegressor": RandomForestRegressor,
-        "GradientBoostingRegressor": GradientBoostingRegressor,
-        "XGBRegressor": XGBRegressor,
-        "LinearSVR": LinearSVR,
-        "LinearSVC": LinearSVC,
-    }
+from abc import ABC
+
+# TODO convert to ABC
+class LearningTask(ABC):
+
+    algorithms = {}
 
     def __init__(self, table, metadata, algorithm, params, 
                  distance_matrix):
         self.distance_matrix = distance_matrix
-        self.learner = self.learner_mapping[algorithm]
         self.params = json.loads(params)
-        self.X = table.view(biom.Table).transpose().matrix_data
-        self.y = metadata.view(pd.Series)
-
+        self.X = table.transpose().matrix_data
+        self.y = metadata
+        self.learner = self.algorithms[algorithm]
         self.cv_idx = 0
 
+        # preallocate lists in size n_cv_repeats * len(y) * size(float)
         self.results = {}
         self.results["CV_IDX"] = []
         self.results["SAMPLE_ID"] = []
         self.results["Y_PRED"] = []
         self.results["Y_TRUE"] = []
-        self.results["RUNTIME"] = []
+        self.results["RUNTIME"] = [] 
 
         # TODO Validate the shapes of X and y, sample_id agreement
         # TODO Validate y is of type int
@@ -79,18 +71,17 @@ class LearningTask():
 class ClassificationTask(LearningTask):
 
     algorithms = {
-        "KNeighborsClassifier",
-        "RandomForestClassifier",
-        "GradientBoostingClassifier",
-        "XGBClassifier",
-        "LinearSVC",
+        "KNeighborsClassifier": KNeighborsClassifier,
+        "RandomForestClassifier": RandomForestClassifier,
+        "GradientBoostingClassifier": GradientBoostingClassifier,
+        "XGBClassifier": XGBClassifier,
+        "LinearSVC": LinearSVC,
     }
 
     def __init__(self, table, metadata, algorithm, params, 
                  distance_matrix):
         super().__init__(table, metadata, algorithm, params, 
                          distance_matrix)
-        
         
         kfold = RepeatedStratifiedKFold(5, 3, random_state=2020)
         self.splits = kfold.split(self.X, self.y)
@@ -149,11 +140,11 @@ class ClassificationTask(LearningTask):
 class RegressionTask(LearningTask):
 
     algorithms = {
-        "KNeighborsRegressor",
-        "RandomForestRegressor",
-        "GradientBoostingRegressor",
-        "XGBRegressor",
-        "LinearSVR",
+        "KNeighborsRegressor": KNeighborsRegressor,
+        "RandomForestRegressor": RandomForestRegressor,
+        "GradientBoostingRegressor": GradientBoostingRegressor,
+        "XGBRegressor": XGBRegressor,
+        "LinearSVR": LinearSVR,
     }
 
     def __init__(self, table, metadata, algorithm, params, 

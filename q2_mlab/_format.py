@@ -12,6 +12,10 @@ import qiime2.plugin.model as model
 from qiime2.plugin import ValidationError
 
 class ResultsFormat(model.TextFileFormat):
+
+    #def _open_(self):
+    #    super.open(self)
+
     def _validate_(self, level):
         with self.open() as fh:
             try:
@@ -21,5 +25,4 @@ class ResultsFormat(model.TextFileFormat):
 
 
 ResultsDirectoryFormat = model.SingleFileDirectoryFormat(
-    'ResultsDirectoryFormat', 'results.tsv',
-    ResultsFormat)
+    'ResultsDirectoryFormat', 'results.tsv', ResultsFormat)
