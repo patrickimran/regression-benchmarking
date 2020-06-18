@@ -35,11 +35,12 @@ class LearningTask(ABC):
         self.distance_matrix = distance_matrix
         self.params = json.loads(params)
         self.X = table.transpose().matrix_data
-        self.y = metadata
+        self.metadata = metadata #.view(pd.Series)
+        self.y = self.metadata.to_numpy()
         self.learner = self.algorithms[algorithm]
         self.cv_idx = 0
 
-        # preallocate lists in size n_cv_repeats * len(y) * size(float)
+        # TODO preallocate lists in size n_cv_repeats * len(y) * size(float)
         self.results = {}
         self.results["CV_IDX"] = []
         self.results["SAMPLE_ID"] = []
@@ -95,7 +96,7 @@ class ClassificationTask(LearningTask):
     def cv_fold(self, train_index,test_index):
         X_train, X_test = self.X[train_index], self.X[test_index]
         y_train, y_test = self.y[train_index], self.y[test_index]
-        y_test_ids = self.y.index[test_index]
+        y_test_ids = self.metadata.index[test_index]
 
         # Start timing
         start = time.process_time()
@@ -162,7 +163,7 @@ class RegressionTask(LearningTask):
     def cv_fold(self, train_index,test_index):
         X_train, X_test = self.X[train_index], self.X[test_index]
         y_train, y_test = self.y[train_index], self.y[test_index]
-        y_test_ids = self.y.index[test_index]
+        y_test_ids = self.metadata.index[test_index]
 
         # Start timing
         start = time.process_time()

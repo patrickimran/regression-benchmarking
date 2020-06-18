@@ -20,9 +20,7 @@ def unit_benchmark(table: biom.Table,
         worker = ClassificationTask(table, metadata, algorithm, params, 
                               distance_matrix)
     else:
-        # TODO more specific error message
-        # PSL exceptions or a new subclass
-        raise Exception(algorithm + " is not an accepted algorithm") 
+        raise ValueError(algorithm + " is not an accepted algorithm") 
 
     for train_index, test_index in worker.splits:
         worker.cv_fold(train_index, test_index)
@@ -31,5 +29,6 @@ def unit_benchmark(table: biom.Table,
 
     # Transform into the new Results Table semantic type
     # results = ctx.make_artifact("SampleData[Results]", results_table)
+    # TODO Confirm the above is automatically handled by QIIME2 interpreter
 
     return results_table #results

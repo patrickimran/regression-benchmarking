@@ -40,21 +40,26 @@ class UnitBenchmarkTests(TestPluginBase):
                             'random_state': [2018]
         }
 
+
         self.reg_params = json.dumps(list(ParameterGrid(LinearSVR_grids))[0])
         self.clf_params = json.dumps(list(ParameterGrid(LinearSVC_grids))[0])
 
     
     def testRegressionTask(self):
 
-        results = self.unit_benchmark(table = self.table,
+        results, = self.unit_benchmark(table = self.table,
                                       metadata = self.metadata,
                                       algorithm = "LinearSVR",
                                       params = self.reg_params,
                                       n_jobs = 1,
                                       distance_matrix = self.distance_matrix)
         
-        print(results)
+        table_df = self.table.view(pd.DataFrame)
+        results_df = results.view(pd.DataFrame)
         # Assert format and content of results
+        expected_shape = (table_df.shape[0]*3, 7)
+        self.assertTupleEqual(results_df.shape, expected_shape)
+
 
     def testClassificationTaskInit(self):
         pass
