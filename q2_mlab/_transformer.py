@@ -1,11 +1,3 @@
-# ----------------------------------------------------------------------------
-# Copyright (c) 2016-2020, QIIME 2 development team.
-#
-# Distributed under the terms of the Modified BSD License.
-#
-# The full license is in the file LICENSE, distributed with this software.
-# ----------------------------------------------------------------------------
-
 from . import ResultsDirectoryFormat, ResultsFormat
 from qiime2 import Metadata
 import pandas as pd
@@ -33,4 +25,3 @@ def _3(ff: ResultsFormat) -> pd.DataFrame:
     with ff.open() as fh:
         df = pd.read_csv(fh, sep="\t")
     return df
-
