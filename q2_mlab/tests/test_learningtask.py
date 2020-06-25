@@ -6,7 +6,7 @@ import biom
 from qiime2 import Artifact
 from qiime2.plugin.testing import TestPluginBase
 from sklearn.model_selection import ParameterGrid
-from learningtask import ClassificationTask, RegressionTask
+from q2_mlab.learningtask import ClassificationTask, RegressionTask
 
 
 class UnitBenchmarkTests(TestPluginBase):
