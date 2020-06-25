@@ -242,3 +242,4 @@ class RegressionTask(LearningTask):
 
         self.cv_idx += 1
         self.idx += nrows
+
