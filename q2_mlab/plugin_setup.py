@@ -123,20 +123,7 @@ plugin.pipelines.register_function(
     ),
 )
 
-algorithm_choices = [
-    "KNeighborsClassifier",
-    "RandomForestClassifier",
-    "GradientBoostingClassifier",
-    "XGBClassifier",
-    "RidgeClassifier",
-    "KNeighborsRegressor",
-    "RandomForestRegressor",
-    "GradientBoostingRegressor",
-    "XGBRegressor",
-    "RidgeRegressor",
-    "LinearSVR",
-    "LinearSVC"
-]
+algorithm_choices = RegressionTask.algorithms | ClassificationTask.algorithms
 
 plugin.methods.register_function(
     function=q2_mlab.unit_benchmark,

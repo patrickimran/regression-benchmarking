@@ -128,9 +128,7 @@ class ClassificationTask(LearningTask):
         y_train, y_test = self.y[train_index], self.y[test_index]
         y_test_ids = self.metadata.index[test_index]
 
-        use_probabilities = False
-        if hasattr(self.learner, "predict_proba"):
-            use_probabilities = True
+        use_probabilities = hasattr(self.learner, "predict_proba")
 
         # Start timing
         start = time.process_time()

@@ -29,9 +29,6 @@ def clean_metadata(df: pd.DataFrame, target_variable, discrete):
     return subset_df
 
 
-# TODO Produce an unrarefied filtered table for differential abundance
-# What are the implications of coverage depth for other variables?
-# GUARANTEE we have the same Sample IDs from the rarefied table and unrarefied
 def preprocess(ctx, table, metadata, phylogeny, sampling_depth, min_frequency,
                target_variable, discrete, with_replacement=False, n_jobs=1):
 
