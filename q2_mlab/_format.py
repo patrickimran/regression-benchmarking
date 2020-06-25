@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (c) 2016-2020, QIIME 2 development team.
+# Copyright (c) 2020, mlab development team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -10,6 +10,7 @@ import csv
 
 import qiime2.plugin.model as model
 from qiime2.plugin import ValidationError
+
 
 class ResultsFormat(model.TextFileFormat):
 

@@ -67,6 +67,7 @@ class UnitBenchmarkTests(TestPluginBase):
         self.assertTupleEqual(results_df.shape, expected_shape)
 
     def testClassificationNoProba(self):
+
         (results,) = self.unit_benchmark(
             table=self.table,
             metadata=self.metadata,
@@ -99,6 +100,7 @@ class UnitBenchmarkTests(TestPluginBase):
         self.assertListEqual(list(results_df.columns), expected_cols)
 
     def testClassificationWithProba(self):
+
         (results,) = self.unit_benchmark(
             table=self.table,
             metadata=self.metadata,
@@ -128,3 +130,38 @@ class UnitBenchmarkTests(TestPluginBase):
             "F1",
         ]
         self.assertListEqual(list(results_df.columns), expected_cols)
+
+    def testNoDistanceMatrix(self):
+
+        (results,) = self.unit_benchmark(
+            table=self.table,
+            metadata=self.metadata,
+            algorithm="LinearSVC",
+            params=self.svc_params,
+            n_repeats=self.n_repeats,
+        )
+
+        table_df = self.table.view(pd.DataFrame)
+        results_df = results.view(pd.DataFrame)
+
+        # Assert format and content of results
+        expected_shape = (table_df.shape[0] * self.n_repeats, 10)
+        self.assertTupleEqual(results_df.shape, expected_shape)
+
+        # Assert columns exist and are null
+        expected_cols = [
+            "CV_IDX",
+            "SAMPLE_ID",
+            "Y_PRED",
+            "Y_TRUE",
+            "RUNTIME",
+            "Y_PROB",
+            "ACCURACY",
+            "AUPRC",
+            "AUROC",
+            "F1",
+        ]
+        self.assertListEqual(list(results_df.columns), expected_cols)
+
+    def testKNNDistanceMatrix(self):
+        pass

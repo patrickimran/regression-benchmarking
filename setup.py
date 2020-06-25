@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (c) 2016-2020, QIIME 2 development team.
+# Copyright (c) 2020, mlab development team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -25,4 +25,5 @@ setup(
     },
     package_data={'q2_mlab': ['assets/index.html', 'citations.bib']},
     zip_safe=False,
+    install_requires=['xgboost', 'lightgbm', 'calour']
 )

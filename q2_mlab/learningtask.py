@@ -28,16 +28,13 @@ from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 from sklearn.ensemble import AdaBoostClassifier, AdaBoostRegressor
 from sklearn.ensemble import BaggingClassifier, BaggingRegressor
 from sklearn.ensemble import ExtraTreesClassifier, ExtraTreesRegressor
-from sklearn.ensemble import (
-    GradientBoostingClassifier,
-    GradientBoostingRegressor,
-)
 from sklearn.experimental import enable_hist_gradient_boosting
 from sklearn.ensemble import (
     HistGradientBoostingClassifier,
     HistGradientBoostingRegressor,
 )
 from sklearn.mixture import BayesianGaussianMixture
+from sklearn.naive_bayes import ComplementNB
 
 from abc import ABC
 
@@ -74,6 +71,7 @@ class LearningTask(ABC):
         self.results["RUNTIME"] = [None] * self.table_size
 
         # TODO Validate the shapes of X and y, sample_id agreement
+
         # TODO Validate y is of type int
         # If checks fail, throw exception and end - handled in preprocess
 
@@ -92,11 +90,19 @@ class ClassificationTask(LearningTask):
 
     algorithms = {
         "KNeighborsClassifier": KNeighborsClassifier,
+        "RidgeClassifier": RidgeClassifier,
         "RandomForestClassifier": RandomForestClassifier,
         "GradientBoostingClassifier": GradientBoostingClassifier,
         "XGBClassifier": XGBClassifier,
         "RidgeClassifier": RidgeClassifier,
         "LinearSVC": LinearSVC,
+        "AdaBoostClassifier": AdaBoostClassifier,
+        "BaggingClassifier": BaggingClassifier,
+        "ExtraTreesClassifier": ExtraTreesClassifier,
+        "HistGradientBoostingClassifier": HistGradientBoostingClassifier,
+        "BayesianGaussianMixture": BayesianGaussianMixture,
+        "ComplementNB": ComplementNB,
+        "BayesianGaussianMixture": BayesianGaussianMixture
     }
 
     def __init__(
@@ -152,7 +158,7 @@ class ClassificationTask(LearningTask):
         self.results["RUNTIME"][curr_indices] = [runtime] * nrows
         self.results["CV_IDX"][curr_indices] = [self.cv_idx] * nrows
         self.results["Y_PRED"][curr_indices] = y_pred
-        self.results["Y_TRUE"][curr_indices] = y_test_ids
+        self.results["Y_TRUE"][curr_indices] = y_test
         self.results["SAMPLE_ID"][curr_indices] = y_test_ids
         self.results["Y_PROB"][curr_indices] = probas
         """
@@ -208,6 +214,10 @@ class RegressionTask(LearningTask):
         "RandomForestRegressor": RandomForestRegressor,
         "GradientBoostingRegressor": GradientBoostingRegressor,
         "XGBRegressor": XGBRegressor,
+        "AdaBoostRegressor": AdaBoostRegressor,
+        "BaggingRegressor": BaggingRegressor,
+        "ExtraTreesRegressor": ExtraTreesRegressor,
+        "HistGradientBoostingRegressor": HistGradientBoostingRegressor,
         "LinearSVR": LinearSVR,
         "RidgeRegressor": Ridge,
     }

@@ -4,15 +4,13 @@ from qiime2.plugin import (
     Int,
     Bool,
     Range,
-    Visualization,
     Metadata,
     Citations,
-    SemanticType,
     Choices,
 )
-import pandas as pd
 import importlib
 import q2_mlab
+from q2_mlab.learningtask import ClassificationTask, RegressionTask
 from q2_types.feature_table import FeatureTable, Frequency
 from q2_types.distance_matrix import DistanceMatrix
 from q2_types.sample_data import SampleData
@@ -123,20 +121,9 @@ plugin.pipelines.register_function(
     ),
 )
 
-algorithm_choices = [
-    "KNeighborsClassifier",
-    "RandomForestClassifier",
-    "GradientBoostingClassifier",
-    "XGBClassifier",
-    "RidgeClassifier",
-    "KNeighborsRegressor",
-    "RandomForestRegressor",
-    "GradientBoostingRegressor",
-    "XGBRegressor",
-    "RidgeRegressor",
-    "LinearSVR",
-    "LinearSVC"
-]
+algorithm_choices = list(ClassificationTask.algorithms.keys()) + list(
+    RegressionTask.algorithms.keys()
+)
 
 plugin.methods.register_function(
     function=q2_mlab.unit_benchmark,
