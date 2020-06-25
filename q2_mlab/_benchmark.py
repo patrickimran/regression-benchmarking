@@ -1,4 +1,3 @@
-# Import learning classes
 import pandas as pd
 import biom
 from skbio.stats.distance import DistanceMatrix
