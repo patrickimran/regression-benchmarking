@@ -7,8 +7,15 @@ import time
 from sklearn.model_selection import RepeatedStratifiedKFold
 
 # Metrics
-from sklearn.metrics import (mean_squared_error, r2_score, accuracy_score,
-                roc_auc_score, precision_recall_curve, auc, f1_score)
+from sklearn.metrics import (
+    mean_squared_error,
+    r2_score,
+    accuracy_score,
+    roc_auc_score,
+    precision_recall_curve,
+    auc,
+    f1_score,
+)
 
 # Algorithms
 from sklearn.neighbors import KNeighborsRegressor, KNeighborsClassifier
@@ -21,11 +28,15 @@ from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 from sklearn.ensemble import AdaBoostClassifier, AdaBoostRegressor
 from sklearn.ensemble import BaggingClassifier, BaggingRegressor
 from sklearn.ensemble import ExtraTreesClassifier, ExtraTreesRegressor
-from sklearn.ensemble import (GradientBoostingClassifier,
-                              GradientBoostingRegressor)
+from sklearn.ensemble import (
+    GradientBoostingClassifier,
+    GradientBoostingRegressor,
+)
 from sklearn.experimental import enable_hist_gradient_boosting
-from sklearn.ensemble import (HistGradientBoostingClassifier,
-                              HistGradientBoostingRegressor)
+from sklearn.ensemble import (
+    HistGradientBoostingClassifier,
+    HistGradientBoostingRegressor,
+)
 from sklearn.mixture import BayesianGaussianMixture
 
 from abc import ABC
@@ -35,7 +46,13 @@ class LearningTask(ABC):
     algorithms = {}
 
     def __init__(
-        self, table, metadata, algorithm, params, n_repeats, distance_matrix
+        self,
+        table,
+        metadata,
+        algorithm,
+        params,
+        n_repeats,
+        distance_matrix=None,
     ):
         self.distance_matrix = distance_matrix
         self.params = json.loads(params)
@@ -50,11 +67,11 @@ class LearningTask(ABC):
         # Preallocate lists in size n_repeats * len(y) * size(float)
         self.table_size = self.n_repeats * self.y.shape[0]
         self.results = {}
-        self.results["CV_IDX"] = np.empty(self.table_size, dtype=int)
-        self.results["SAMPLE_ID"] = np.empty(self.table_size, dtype=object)
-        self.results["Y_PRED"] = np.empty(self.table_size, dtype=float)
-        self.results["Y_TRUE"] = np.empty(self.table_size, dtype=object)
-        self.results["RUNTIME"] = np.empty(self.table_size, dtype=float)
+        self.results["CV_IDX"] = [None] * self.table_size
+        self.results["SAMPLE_ID"] = [None] * self.table_size
+        self.results["Y_PRED"] = [None] * self.table_size
+        self.results["Y_TRUE"] = [None] * self.table_size
+        self.results["RUNTIME"] = [None] * self.table_size
 
         # TODO Validate the shapes of X and y, sample_id agreement
         # TODO Validate y is of type int
@@ -70,10 +87,6 @@ class LearningTask(ABC):
         results_table = pd.DataFrame.from_dict(self.results)
         return results_table
 
-    def print_attributes(self):  # TODO delete
-        print(self.learner)
-        print(self.params)
-
 
 class ClassificationTask(LearningTask):
 
@@ -87,7 +100,13 @@ class ClassificationTask(LearningTask):
     }
 
     def __init__(
-        self, table, metadata, algorithm, params, n_repeats, distance_matrix
+        self,
+        table,
+        metadata,
+        algorithm,
+        params,
+        n_repeats,
+        distance_matrix=None,
     ):
         super().__init__(
             table, metadata, algorithm, params, n_repeats, distance_matrix
@@ -98,11 +117,11 @@ class ClassificationTask(LearningTask):
 
         # Lists because they must be one-dimensional to be converted to
         # pd.DataFrame columns
-        self.results["Y_PROB"] = [] * self.table_size
-        self.results["ACCURACY"] = np.empty(self.table_size, dtype=float)
-        self.results["AUPRC"] = np.empty(self.table_size, dtype=float)
-        self.results["AUROC"] = np.empty(self.table_size, dtype=float)
-        self.results["F1"] = np.empty(self.table_size, dtype=float)
+        self.results["Y_PROB"] = [None] * self.table_size
+        self.results["ACCURACY"] = [None] * self.table_size
+        self.results["AUPRC"] = [None] * self.table_size
+        self.results["AUROC"] = [None] * self.table_size
+        self.results["F1"] = [None] * self.table_size
 
     def cv_fold(self, train_index, test_index):
         X_train, X_test = self.X[train_index], self.X[test_index]
@@ -110,7 +129,7 @@ class ClassificationTask(LearningTask):
         y_test_ids = self.metadata.index[test_index]
 
         use_probabilities = False
-        if hasattr(self.learner, 'predict_proba'):
+        if hasattr(self.learner, "predict_proba"):
             use_probabilities = True
 
         # Start timing
@@ -123,7 +142,7 @@ class ClassificationTask(LearningTask):
 
         runtime = end - start
         nrows = len(y_pred)
-        curr_indices = list(range(self.idx, self.idx + nrows))
+        curr_indices = slice(self.idx, self.idx + nrows)
 
         if use_probabilities:
             probas = m.predict_proba(X_test)
@@ -135,8 +154,8 @@ class ClassificationTask(LearningTask):
         self.results["Y_PRED"][curr_indices] = y_pred
         self.results["Y_TRUE"][curr_indices] = y_test_ids
         self.results["SAMPLE_ID"][curr_indices] = y_test_ids
-        self.results["Y_PROB"].extend(probas)
-        '''
+        self.results["Y_PROB"][curr_indices] = probas
+        """
         Catch-22:
         Can only index a numpy array with a list (as seen above). 1D numpy
         arrays cannot contain tuples (probas is a tuple of length n_classes)
@@ -145,7 +164,7 @@ class ClassificationTask(LearningTask):
 
         current fix:
         Make any tuple columns as lists, and dynamically allocate them.
-        '''
+        """
 
         if self.contains_nan(y_pred):
             # All null
@@ -161,16 +180,15 @@ class ClassificationTask(LearningTask):
             self.results["F1"][curr_indices] = [f1] * nrows
 
             # Others null
-            self.results["AUPRC"][curr_indices] = [np.nan] * nrows
-            self.results["AUROC"][curr_indices] = [np.nan] * nrows
+            self.results["AUPRC"][curr_indices] = [None] * nrows
+            self.results["AUROC"][curr_indices] = [None] * nrows
         elif use_probabilities:
             # All metrics.
-            mean_recall = np.linspace(0, 1, 50)
             probas = probas[:, 1]
             precision, recall, _ = precision_recall_curve(y_test, probas)
             self.results["AUPRC"][curr_indices] = [
                 auc(recall, precision)
-                ] * nrows
+            ] * nrows
             self.results["AUROC"][curr_indices] = [
                 roc_auc_score(y_test, probas)
             ] * nrows
@@ -195,7 +213,13 @@ class RegressionTask(LearningTask):
     }
 
     def __init__(
-        self, table, metadata, algorithm, params, n_repeats, distance_matrix
+        self,
+        table,
+        metadata,
+        algorithm,
+        params,
+        n_repeats,
+        distance_matrix=None,
     ):
         super().__init__(
             table, metadata, algorithm, params, n_repeats, distance_matrix
@@ -205,8 +229,8 @@ class RegressionTask(LearningTask):
         kfold = RepeatedStratifiedKFold(5, self.n_repeats, random_state=2020)
         self.splits = kfold.split(self.X, self.y)
 
-        self.results["RMSE"] = np.empty(self.table_size, dtype=float)
-        self.results["R2"] = np.empty(self.table_size, dtype=float)
+        self.results["RMSE"] = [None] * self.table_size
+        self.results["R2"] = [None] * self.table_size
 
     def cv_fold(self, train_index, test_index):
         X_train, X_test = self.X[train_index], self.X[test_index]
@@ -223,7 +247,7 @@ class RegressionTask(LearningTask):
 
         runtime = end - start
         nrows = len(y_pred)
-        curr_indices = list(range(self.idx, self.idx + nrows))
+        curr_indices = slice(self.idx, self.idx + nrows)
 
         self.results["RUNTIME"][curr_indices] = [runtime] * nrows
         self.results["CV_IDX"][curr_indices] = [self.cv_idx] * nrows

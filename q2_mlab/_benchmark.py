@@ -1,7 +1,6 @@
 # Import learning classes
 import pandas as pd
 import biom
-from qiime2 import Metadata
 from skbio.stats.distance import DistanceMatrix
 from .learningtask import RegressionTask, ClassificationTask
 
@@ -11,7 +10,7 @@ def unit_benchmark(
     metadata: pd.Series,
     algorithm: str,
     params: str,
-    distance_matrix: DistanceMatrix,
+    distance_matrix: DistanceMatrix = None,
     n_repeats: int = 3,
 ) -> pd.DataFrame:
 
