@@ -156,7 +156,7 @@ class ClassificationTask(LearningTask):
         if use_probabilities:
             probas = m.predict_proba(X_test)
         else:
-            probas = np.zeros(shape=(nrows, self.n_classes))
+            probas = np.nan
 
         self.results["RUNTIME"][curr_indices] = runtime
         self.results["CV_IDX"][curr_indices] = self.cv_idx
@@ -166,7 +166,10 @@ class ClassificationTask(LearningTask):
 
         for n in list(range(self.n_classes)):
             colname = "PROB_CLASS_" + str(n)
-            self.results[colname][curr_indices] = probas[:, n]
+            if use_probabilities:
+                self.results[colname][curr_indices] = probas[:, n]
+            else:
+                self.results[colname][curr_indices] = np.nan
 
         if self.contains_nan(y_pred):
             # All null
