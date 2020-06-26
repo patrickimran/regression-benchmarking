@@ -6,6 +6,7 @@ from abc import ABC
 
 # CV Methods
 from sklearn.model_selection import RepeatedStratifiedKFold
+from calour.training import RepeatedSortedStratifiedKFold
 
 # Metrics
 from sklearn.metrics import (
@@ -71,9 +72,9 @@ class LearningTask(ABC):
         self.results["Y_TRUE"] = np.zeros(self.table_size, dtype=object)
         self.results["RUNTIME"] = np.zeros(self.table_size, dtype=float)
 
-        # TODO Validate the shapes of X and y, sample_id agreement
-        # TODO Validate y is of type int
-        # If checks fail, throw exception and end - handled in preprocess
+        # Check for sample id agreement between table and metadata
+        if set(metadata.index) != set(table.ids()):
+            raise ValueError("Table and Metadata sample IDs do not match")
 
     def contains_nan(self, y_pred):
         if (np.any(pd.isnull(y_pred))) or (not np.all(np.isfinite(y_pred))):
@@ -223,8 +224,9 @@ class RegressionTask(LearningTask):
             table, metadata, algorithm, params, n_repeats, distance_matrix
         )
 
-        # TODO replace kfold with repeated SORTED stratified
-        kfold = RepeatedStratifiedKFold(5, self.n_repeats, random_state=2020)
+        kfold = RepeatedSortedStratifiedKFold(
+            5, self.n_repeats, random_state=2020
+        )
         self.splits = kfold.split(self.X, self.y)
 
         self.results["MAE"] = np.zeros(self.table_size, dtype=float)
