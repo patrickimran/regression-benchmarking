@@ -39,6 +39,7 @@ from sklearn.ensemble import (
 from sklearn.mixture import BayesianGaussianMixture
 from sklearn.naive_bayes import ComplementNB
 from lightgbm import LGBMClassifier, LGBMRegressor
+from sklearn.neural_network import MLPClassifier, MLPRegressor
 
 
 class LearningTask(ABC):
@@ -73,8 +74,10 @@ class LearningTask(ABC):
         self.results["RUNTIME"] = np.zeros(self.table_size, dtype=float)
 
         # Check for sample id agreement between table and metadata
-        if set(metadata.index) != set(table.ids()):
-            raise ValueError("Table and Metadata sample IDs do not match")
+        if list(metadata.index) != list(table.ids()):
+            raise ValueError(
+                "Table and Metadata Sample IDs do not match in contents and/or order"
+            )
 
     def contains_nan(self, y_pred):
         if (np.any(pd.isnull(y_pred))) or (not np.all(np.isfinite(y_pred))):
@@ -105,6 +108,7 @@ class ClassificationTask(LearningTask):
         "BayesianGaussianMixture": BayesianGaussianMixture,
         "ComplementNB": ComplementNB,
         "BayesianGaussianMixture": BayesianGaussianMixture,
+        "MLPClassifier": MLPClassifier,
     }
 
     def __init__(
@@ -209,6 +213,7 @@ class RegressionTask(LearningTask):
         "LGBMRegressor": LGBMRegressor,
         "LinearSVR": LinearSVR,
         "RidgeRegressor": Ridge,
+        "MLPRegressor": MLPRegressor,
     }
 
     def __init__(
