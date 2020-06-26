@@ -31,6 +31,9 @@ class UnitBenchmarkTests(TestPluginBase):
         self.metadata = Artifact.load(metadata).view(pd.Series)
         self.distance_matrix = Artifact.load(distance_matrix)
         self.n_repeats = 1
+        n_classes = self.metadata.nunique()
+        self.ncols_classification = 9 + n_classes
+        self.ncols_regression = 8
 
         LinearSVR_grids = {
             "C": [1e-4, 1e-2, 1e-1, 1e1, 1e2, 1e4],
@@ -82,7 +85,7 @@ class UnitBenchmarkTests(TestPluginBase):
         for key in task.results:
             self.assertEqual(len(task.results[key]), task.table_size)
 
-        self.assertEqual(len(task.results), 7)
+        self.assertEqual(len(task.results), self.ncols_regression)
 
     def testClassificationTaskInit(self):
         task = ClassificationTask(
@@ -95,6 +98,7 @@ class UnitBenchmarkTests(TestPluginBase):
 
         task.results
         for key in task.results:
+            print(key, len(task.results[key]))
             self.assertEqual(len(task.results[key]), task.table_size)
 
-        self.assertEqual(len(task.results), 10)
+        self.assertEqual(len(task.results), self.ncols_classification)

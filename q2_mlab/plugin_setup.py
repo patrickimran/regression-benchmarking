@@ -121,7 +121,9 @@ plugin.pipelines.register_function(
     ),
 )
 
-algorithm_choices = RegressionTask.algorithms | ClassificationTask.algorithms
+algorithm_choices = (
+    RegressionTask.algorithms.keys() | ClassificationTask.algorithms.keys()
+)
 
 plugin.methods.register_function(
     function=q2_mlab.unit_benchmark,

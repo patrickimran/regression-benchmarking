@@ -2,12 +2,14 @@ import json
 import numpy as np
 import pandas as pd
 import time
+from abc import ABC
 
 # CV Methods
 from sklearn.model_selection import RepeatedStratifiedKFold
 
 # Metrics
 from sklearn.metrics import (
+    mean_absolute_error,
     mean_squared_error,
     r2_score,
     accuracy_score,
@@ -35,8 +37,7 @@ from sklearn.ensemble import (
 )
 from sklearn.mixture import BayesianGaussianMixture
 from sklearn.naive_bayes import ComplementNB
-
-from abc import ABC
+from lightgbm import LGBMClassifier, LGBMRegressor
 
 
 class LearningTask(ABC):
@@ -60,18 +61,17 @@ class LearningTask(ABC):
         self.cv_idx = 0
         self.idx = 0
         self.n_repeats = n_repeats
-
-        # Preallocate lists in size n_repeats * len(y) * size(float)
+        self.n_classes = self.metadata.nunique()
         self.table_size = self.n_repeats * self.y.shape[0]
+
         self.results = {}
-        self.results["CV_IDX"] = [None] * self.table_size
-        self.results["SAMPLE_ID"] = [None] * self.table_size
-        self.results["Y_PRED"] = [None] * self.table_size
-        self.results["Y_TRUE"] = [None] * self.table_size
-        self.results["RUNTIME"] = [None] * self.table_size
+        self.results["CV_IDX"] = np.zeros(self.table_size, dtype=int)
+        self.results["SAMPLE_ID"] = np.zeros(self.table_size, dtype=object)
+        self.results["Y_PRED"] = np.zeros(self.table_size, dtype=float)
+        self.results["Y_TRUE"] = np.zeros(self.table_size, dtype=object)
+        self.results["RUNTIME"] = np.zeros(self.table_size, dtype=float)
 
         # TODO Validate the shapes of X and y, sample_id agreement
-
         # TODO Validate y is of type int
         # If checks fail, throw exception and end - handled in preprocess
 
@@ -100,9 +100,10 @@ class ClassificationTask(LearningTask):
         "BaggingClassifier": BaggingClassifier,
         "ExtraTreesClassifier": ExtraTreesClassifier,
         "HistGradientBoostingClassifier": HistGradientBoostingClassifier,
+        "LGBMClassifier": LGBMClassifier,
         "BayesianGaussianMixture": BayesianGaussianMixture,
         "ComplementNB": ComplementNB,
-        "BayesianGaussianMixture": BayesianGaussianMixture
+        "BayesianGaussianMixture": BayesianGaussianMixture,
     }
 
     def __init__(
@@ -121,20 +122,18 @@ class ClassificationTask(LearningTask):
         kfold = RepeatedStratifiedKFold(5, self.n_repeats, random_state=2020)
         self.splits = kfold.split(self.X, self.y)
 
-        # Lists because they must be one-dimensional to be converted to
-        # pd.DataFrame columns
-        self.results["Y_PROB"] = [None] * self.table_size
-        self.results["ACCURACY"] = [None] * self.table_size
-        self.results["AUPRC"] = [None] * self.table_size
-        self.results["AUROC"] = [None] * self.table_size
-        self.results["F1"] = [None] * self.table_size
+        for n in list(range(self.n_classes)):
+            colname = "PROB_CLASS_" + str(n)
+            self.results[colname] = np.zeros(self.table_size, dtype=float)
+        self.results["ACCURACY"] = np.zeros(self.table_size, dtype=float)
+        self.results["AUPRC"] = np.zeros(self.table_size, dtype=float)
+        self.results["AUROC"] = np.zeros(self.table_size, dtype=float)
+        self.results["F1"] = np.zeros(self.table_size, dtype=float)
 
     def cv_fold(self, train_index, test_index):
         X_train, X_test = self.X[train_index], self.X[test_index]
         y_train, y_test = self.y[train_index], self.y[test_index]
         y_test_ids = self.metadata.index[test_index]
-
-        use_probabilities = hasattr(self.learner, "predict_proba")
 
         # Start timing
         start = time.process_time()
@@ -146,60 +145,50 @@ class ClassificationTask(LearningTask):
 
         runtime = end - start
         nrows = len(y_pred)
-        curr_indices = slice(self.idx, self.idx + nrows)
+        curr_indices = list(range(self.idx, self.idx + nrows))
+        use_probabilities = hasattr(self.learner, "predict_proba")
 
         if use_probabilities:
             probas = m.predict_proba(X_test)
         else:
-            probas = [np.nan] * nrows
+            probas = np.zeros(shape=(nrows, self.n_classes))
 
-        self.results["RUNTIME"][curr_indices] = [runtime] * nrows
-        self.results["CV_IDX"][curr_indices] = [self.cv_idx] * nrows
+        self.results["RUNTIME"][curr_indices] = runtime
+        self.results["CV_IDX"][curr_indices] = self.cv_idx
         self.results["Y_PRED"][curr_indices] = y_pred
         self.results["Y_TRUE"][curr_indices] = y_test
         self.results["SAMPLE_ID"][curr_indices] = y_test_ids
-        self.results["Y_PROB"][curr_indices] = probas
-        """
-        Catch-22:
-        Can only index a numpy array with a list (as seen above). 1D numpy
-        arrays cannot contain tuples (probas is a tuple of length n_classes)
-        so the array must be init as a multidim array (nrows, n_classes).
-        Multidim arrays cannot be converted into columns of a dataframe.
 
-        current fix:
-        Make any tuple columns as lists, and dynamically allocate them.
-        """
+        for n in list(range(self.n_classes)):
+            colname = "PROB_CLASS_" + str(n)
+            self.results[colname][curr_indices] = probas[:, n]
 
         if self.contains_nan(y_pred):
             # All null
-            self.results["AUPRC"][curr_indices] = [np.nan] * nrows
-            self.results["AUROC"][curr_indices] = [np.nan] * nrows
-            self.results["ACCURACY"][curr_indices] = [np.nan] * nrows
-            self.results["F1"][curr_indices] = [np.nan] * nrows
+            self.results["AUPRC"][curr_indices] = np.nan
+            self.results["AUROC"][curr_indices] = np.nan
+            self.results["ACCURACY"][curr_indices] = np.nan
+            self.results["F1"][curr_indices] = np.nan
         elif not use_probabilities:
             # Just F1 and Accuracy
             acc_score = accuracy_score(y_pred, y_test)
-            self.results["ACCURACY"][curr_indices] = [acc_score] * nrows
+            self.results["ACCURACY"][curr_indices] = acc_score
             f1 = f1_score(y_test, y_pred)
-            self.results["F1"][curr_indices] = [f1] * nrows
+            self.results["F1"][curr_indices] = f1
 
             # Others null
-            self.results["AUPRC"][curr_indices] = [None] * nrows
-            self.results["AUROC"][curr_indices] = [None] * nrows
+            self.results["AUPRC"][curr_indices] = np.nan
+            self.results["AUROC"][curr_indices] = np.nan
         elif use_probabilities:
             # All metrics.
             probas = probas[:, 1]
             precision, recall, _ = precision_recall_curve(y_test, probas)
-            self.results["AUPRC"][curr_indices] = [
-                auc(recall, precision)
-            ] * nrows
-            self.results["AUROC"][curr_indices] = [
-                roc_auc_score(y_test, probas)
-            ] * nrows
+            self.results["AUPRC"][curr_indices] = auc(recall, precision)
+            self.results["AUROC"][curr_indices] = roc_auc_score(y_test, probas)
             acc_score = accuracy_score(y_pred, y_test)
-            self.results["ACCURACY"][curr_indices] = [acc_score] * nrows
+            self.results["ACCURACY"][curr_indices] = acc_score
             f1 = f1_score(y_test, y_pred)
-            self.results["F1"][curr_indices] = [f1] * nrows
+            self.results["F1"][curr_indices] = f1
 
         self.cv_idx += 1
         self.idx += nrows
@@ -216,6 +205,7 @@ class RegressionTask(LearningTask):
         "BaggingRegressor": BaggingRegressor,
         "ExtraTreesRegressor": ExtraTreesRegressor,
         "HistGradientBoostingRegressor": HistGradientBoostingRegressor,
+        "LGBMRegressor": LGBMRegressor,
         "LinearSVR": LinearSVR,
         "RidgeRegressor": Ridge,
     }
@@ -237,8 +227,9 @@ class RegressionTask(LearningTask):
         kfold = RepeatedStratifiedKFold(5, self.n_repeats, random_state=2020)
         self.splits = kfold.split(self.X, self.y)
 
-        self.results["RMSE"] = [None] * self.table_size
-        self.results["R2"] = [None] * self.table_size
+        self.results["MAE"] = np.zeros(self.table_size, dtype=float)
+        self.results["RMSE"] = np.zeros(self.table_size, dtype=float)
+        self.results["R2"] = np.zeros(self.table_size, dtype=float)
 
     def cv_fold(self, train_index, test_index):
         X_train, X_test = self.X[train_index], self.X[test_index]
@@ -255,22 +246,24 @@ class RegressionTask(LearningTask):
 
         runtime = end - start
         nrows = len(y_pred)
-        curr_indices = slice(self.idx, self.idx + nrows)
+        curr_indices = list(range(self.idx, self.idx + nrows))
 
-        self.results["RUNTIME"][curr_indices] = [runtime] * nrows
-        self.results["CV_IDX"][curr_indices] = [self.cv_idx] * nrows
+        self.results["RUNTIME"][curr_indices] = runtime
+        self.results["CV_IDX"][curr_indices] = self.cv_idx
         self.results["Y_PRED"][curr_indices] = y_pred
         self.results["Y_TRUE"][curr_indices] = y_test_ids
         self.results["SAMPLE_ID"][curr_indices] = y_test_ids
 
         if not self.contains_nan(y_pred):
             rmse = np.sqrt(mean_squared_error(y_test, y_pred))
-            self.results["RMSE"][curr_indices] = [rmse] * nrows
+            self.results["RMSE"][curr_indices] = rmse
             r2 = r2_score(y_test, y_pred)
-            self.results["R2"][curr_indices] = [r2] * nrows
+            self.results["R2"][curr_indices] = r2
+            mae = mean_absolute_error(y_test, y_pred)
+            self.results["MAE"][curr_indices] = mae
         else:
-            self.results["RMSE"][curr_indices] = [None] * nrows
-            self.results["R2"][curr_indices] = [None] * nrows
+            self.results["RMSE"][curr_indices] = np.nan
+            self.results["R2"][curr_indices] = np.nan
 
         self.cv_idx += 1
         self.idx += nrows
