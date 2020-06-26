@@ -25,6 +25,7 @@ from sklearn.neighbors import KNeighborsRegressor, KNeighborsClassifier
 from sklearn.linear_model import RidgeClassifier, Ridge
 from xgboost import XGBRegressor, XGBClassifier
 from sklearn.svm import LinearSVR, LinearSVC
+from sklearn.svm import SVC, SVR
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
@@ -40,6 +41,7 @@ from sklearn.mixture import BayesianGaussianMixture
 from sklearn.naive_bayes import ComplementNB
 from lightgbm import LGBMClassifier, LGBMRegressor
 from sklearn.neural_network import MLPClassifier, MLPRegressor
+from sklearn.linear_model import ElasticNet, Lasso
 
 
 class LearningTask(ABC):
@@ -76,7 +78,8 @@ class LearningTask(ABC):
         # Check for sample id agreement between table and metadata
         if list(metadata.index) != list(table.ids()):
             raise ValueError(
-                "Table and Metadata Sample IDs do not match in contents and/or order"
+                "Table and Metadata Sample IDs do not match in contents "
+                "and/or order"
             )
 
     def contains_nan(self, y_pred):
@@ -109,6 +112,7 @@ class ClassificationTask(LearningTask):
         "ComplementNB": ComplementNB,
         "BayesianGaussianMixture": BayesianGaussianMixture,
         "MLPClassifier": MLPClassifier,
+        "SVC": SVC,
     }
 
     def __init__(
@@ -217,6 +221,9 @@ class RegressionTask(LearningTask):
         "LinearSVR": LinearSVR,
         "RidgeRegressor": Ridge,
         "MLPRegressor": MLPRegressor,
+        "SVR": SVR,
+        "ElasticNet": ElasticNet,
+        "Lasso": Lasso,
     }
 
     def __init__(
