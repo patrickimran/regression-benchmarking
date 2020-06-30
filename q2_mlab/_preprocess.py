@@ -1,6 +1,7 @@
 import pandas as pd
 import biom
-from qiime2 import Metadata
+from qiime2 import Metadata, Artifact
+import skbio
 
 
 def print_datasize(table, metadata):
@@ -11,7 +12,7 @@ def print_datasize(table, metadata):
 
 
 def clean_metadata(df: pd.DataFrame, target_variable, discrete):
-    # metadata categories that are used in this pipeline are assumed to be
+    # Metadata categories that are used in this pipeline are assumed to be
     # cleaned upfront. For classification, the only allowed values are 0 and 1.
     # For regression, the allowed values are any real numbers
     # Enforce numeric for continuous variables
@@ -34,11 +35,11 @@ def preprocess(
     ctx,
     table,
     metadata,
-    phylogeny,
     sampling_depth,
     min_frequency,
     target_variable,
     discrete,
+    phylogeny=None,
     with_replacement=False,
     n_jobs=1,
 ):
@@ -55,9 +56,19 @@ def preprocess(
     print("Inital sizes")
     print_datasize(table, metadata)
 
+    ids_to_keep = table.view(biom.Table).ids()
+    table_id_set = set(ids_to_keep)
+    metadata_id_set = set(metadata.ids)
+    num_shared_ids = len(table_id_set.intersection(metadata_id_set))
+    if num_shared_ids == 0:
+        raise ValueError("No sample IDs are shared between Table and Metadata")
+    print(
+        "# of shared sample IDs between Table and Metadata: ",
+        num_shared_ids, "\n"
+    )
+
     # Filter metadata by samples in table
     print("Filtering Metadata by samples in table")
-    ids_to_keep = table.view(biom.Table).ids()
     filteredmetadata = metadata.filter_ids(ids_to_keep=ids_to_keep)
     print_datasize(table, filteredmetadata)
 
@@ -75,24 +86,25 @@ def preprocess(
     print_datasize(table, target_mapping)
 
     # Filter features that do not exist in phylogeny
-    print("Filtering features from Table that do not exist in phylogeny")
-    phylo_filtered_results = filter_features(table=table, tree=phylogeny)
-    phylo_filtered_table = phylo_filtered_results.filtered_table
-    print_datasize(phylo_filtered_table, target_mapping)
+    if phylogeny:
+        print("Filtering features from Table that do not exist in phylogeny")
+        phylo_filtered_results = filter_features(table=table, tree=phylogeny)
+        table = phylo_filtered_results.filtered_table
+        print_datasize(table, target_mapping)
 
     # Filter low-abundance features from table
     print(
         f"Filtering low-abundance features (frequency<{min_frequency}) from Table"
     )
-    (filtered_table,) = filter_min_features(
-        table=phylo_filtered_table, min_frequency=min_frequency
+    (table,) = filter_min_features(
+        table=table, min_frequency=min_frequency
     )
-    print_datasize(filtered_table, target_mapping)
+    print_datasize(table, target_mapping)
 
     # Rarefy table to sampling_depth
     print(f"Rarefying Table to sampling depth of {sampling_depth}")
     (rarefied_table,) = rarefy(
-        table=filtered_table,
+        table=table,
         sampling_depth=sampling_depth,
         with_replacement=with_replacement,
     )
@@ -140,13 +152,18 @@ def preprocess(
             table=filtered_rarefied_table, metric=metric, n_jobs=n_jobs
         )
         results += beta_results
-    for metric in ["unweighted_unifrac", "weighted_unifrac"]:
-        beta_phylo_results = beta_phylogenetic(
-            table=filtered_rarefied_table,
-            phylogeny=phylogeny,
-            metric=metric,
-            n_jobs=n_jobs,
-        )
-        results += beta_phylo_results
-
+    if phylogeny:
+        for metric in ["unweighted_unifrac", "weighted_unifrac"]:
+            beta_phylo_results = beta_phylogenetic(
+                table=filtered_rarefied_table,
+                phylogeny=phylogeny,
+                metric=metric,
+                n_jobs=n_jobs,
+            )
+            results += beta_phylo_results
+    else:
+        # No phylogeny, return empty matrices.
+        results += 2*[Artifact.import_data(
+            "DistanceMatrix", skbio.DistanceMatrix(data=[])
+        )]
     return tuple(results)
