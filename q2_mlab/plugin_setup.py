@@ -68,6 +68,7 @@ plugin.pipelines.register_function(
     },
     outputs=[
         ("filtered_rarefied_table", FeatureTable[Frequency]),
+        ("filtered_table", FeatureTable[Frequency]),
         ("filtered_metadata", SampleData[Target]),
         ("jaccard_distance_matrix", DistanceMatrix),
         ("bray_curtis_distance_matrix", DistanceMatrix),
@@ -101,8 +102,9 @@ plugin.pipelines.register_function(
         "n_jobs": sklearn_n_jobs_description,
     },
     output_descriptions={
-        "filtered_rarefied_table": "The resulting filtered and rarefied "
+        "filtered_rarefied_table": "The resulting filtered (and rarefied) "
         "feature table.",
+        "filtered_table": "The resulting filtered (unrarefied) feature table.",
         "filtered_metadata": "The resulting filtered metadata containing "
         "only the specific target column.",
         "jaccard_distance_matrix": "Matrix of Jaccard distances between pairs of samples.",

@@ -56,8 +56,8 @@ def preprocess(
     print("Inital sizes")
     print_datasize(table, metadata)
 
-    ids_to_keep = table.view(biom.Table).ids()
-    table_id_set = set(ids_to_keep)
+    initial_ids_to_keep = table.view(biom.Table).ids()
+    table_id_set = set(initial_ids_to_keep)
     metadata_id_set = set(metadata.ids)
     num_shared_ids = len(table_id_set.intersection(metadata_id_set))
     if num_shared_ids == 0:
@@ -69,7 +69,7 @@ def preprocess(
 
     # Filter metadata by samples in table
     print("Filtering Metadata by samples in table")
-    filteredmetadata = metadata.filter_ids(ids_to_keep=ids_to_keep)
+    filteredmetadata = metadata.filter_ids(ids_to_keep=initial_ids_to_keep)
     print_datasize(table, filteredmetadata)
 
     # Filter samples from metadata where NaN in target_variable column
@@ -101,7 +101,7 @@ def preprocess(
     )
     print_datasize(table, target_mapping)
 
-    # Rarefy table to sampling_depth
+    # Rarefy Table to sampling_depth
     print(f"Rarefying Table to sampling depth of {sampling_depth}")
     (rarefied_table,) = rarefy(
         table=table,
@@ -110,21 +110,27 @@ def preprocess(
     )
     print_datasize(rarefied_table, target_mapping)
 
-    # Filter table by samples in metadata
-    print("Filtering Table by samples in Metadata")
+    print("Filtering Rarefied Table by samples in Metadata")
     filtered_rarefied_table_results = filter_samples(
         table=rarefied_table, metadata=filteredmetadata
     )
     filtered_rarefied_table = filtered_rarefied_table_results.filtered_table
     print_datasize(filtered_rarefied_table, target_mapping)
-
     results += filtered_rarefied_table_results
 
     # Refilter target_mapping by samples in table
-    print("Refiltering Metadata by samples in final Table")
+    print("Refiltering Metadata by samples in Rarefied Table")
     ids_to_keep = filtered_rarefied_table.view(biom.Table).ids()
     target_mapping = target_mapping.filter_ids(ids_to_keep=ids_to_keep)
     print_datasize(filtered_rarefied_table, target_mapping)
+
+    # Filter Rarefied Table by samples in metadata
+    print("Filtering Unrarefied Table by samples in Metadata to match Rarefied Table")
+    filtered_table_results = filter_samples(
+        table=table, metadata=target_mapping
+    )
+    print_datasize(filtered_table_results.filtered_table, target_mapping)
+    results += filtered_table_results
 
     # Some transformations to get data into correct format for artifact
     target_mapping_col = target_mapping.get_column(target_variable)
