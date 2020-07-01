@@ -1,5 +1,6 @@
 import pandas as pd
 import biom
+import skbio
 from qiime2 import Artifact, Metadata
 from os import path
 from q2_mlab._preprocess import clean_metadata
@@ -91,6 +92,17 @@ class PreprocessingTests(TestPluginBase):
         self.assertTrue(str(results[7].type) == 'DistanceMatrix')
         self.assertTrue(str(results[8].type) == 'DistanceMatrix')
 
+        # Assert that empty phylogenetic distance matrices have shape (1,1)
+        self.assertTupleEqual(
+            results[7].view(skbio.DistanceMatrix).shape,
+            (1, 1)
+        )
+        self.assertTupleEqual(
+            results[8].view(skbio.DistanceMatrix).shape,
+            (1, 1)
+        )
+
+        # Assert that the rarefied and unrarefied tables match in # samples
         self.assertEqual(
             results[0].view(biom.Table).shape[1],
             results[1].view(biom.Table).shape[1]

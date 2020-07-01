@@ -168,7 +168,7 @@ def preprocess(
             )
             results += beta_phylo_results
     else:
-        # No phylogeny, return empty matrices.
+        # No phylogeny, return empty (1,1) matrices.
         results += 2*[Artifact.import_data(
             "DistanceMatrix", skbio.DistanceMatrix(data=[])
         )]
