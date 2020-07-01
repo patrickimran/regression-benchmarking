@@ -128,8 +128,10 @@ class ClassificationTask(LearningTask):
             table, metadata, algorithm, params, n_repeats, distance_matrix
         )
 
-        kfold = RepeatedStratifiedKFold(5, self.n_repeats, random_state=2020)
-        self.splits = kfold.split(self.X, self.y)
+        kfold = RepeatedStratifiedKFold(
+            n_splits=5, n_repeats=self.n_repeats, random_state=2020
+        )
+        self.splits = kfold.split(X=self.X, y=self.y)
 
         for n in list(range(self.n_classes)):
             colname = "PROB_CLASS_" + str(n)
@@ -240,9 +242,9 @@ class RegressionTask(LearningTask):
         )
 
         kfold = RepeatedSortedStratifiedKFold(
-            5, self.n_repeats, random_state=2020
+            n_splits=5, n_repeats=self.n_repeats, random_state=2020
         )
-        self.splits = kfold.split(self.X, self.y)
+        self.splits = kfold.split(X=self.X, y=self.y)
 
         self.results["MAE"] = np.zeros(self.table_size, dtype=float)
         self.results["RMSE"] = np.zeros(self.table_size, dtype=float)
