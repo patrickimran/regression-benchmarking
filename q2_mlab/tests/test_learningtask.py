@@ -98,7 +98,6 @@ class UnitBenchmarkTests(TestPluginBase):
 
         task.results
         for key in task.results:
-            print(key, len(task.results[key]))
             self.assertEqual(len(task.results[key]), task.table_size)
 
         self.assertEqual(len(task.results), self.ncols_classification)
