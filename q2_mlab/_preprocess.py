@@ -112,7 +112,7 @@ def preprocess(
 
     print("Filtering Rarefied Table by samples in Metadata")
     filtered_rarefied_table_results = filter_samples(
-        table=rarefied_table, metadata=filteredmetadata
+        table=rarefied_table, metadata=target_mapping
     )
     filtered_rarefied_table = filtered_rarefied_table_results.filtered_table
     print_datasize(filtered_rarefied_table, target_mapping)
