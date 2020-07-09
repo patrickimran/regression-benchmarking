@@ -13,21 +13,14 @@ def unit_benchmark(
     n_repeats: int = 3,
 ) -> pd.DataFrame:
 
-    if algorithm in RegressionTask.algorithms:
-        worker = RegressionTask(
-            table, metadata, algorithm, params, n_repeats, distance_matrix
-        )
-    elif algorithm in ClassificationTask.algorithms:
-        worker = ClassificationTask(
-            table, metadata, algorithm, params, n_repeats, distance_matrix
-        )
-    else:
-        raise ValueError(algorithm + " is not an accepted algorithm")
-
-    for train_index, test_index in worker.splits:
-        worker.cv_fold(train_index, test_index)
-
-    results_table = worker.tabularize()
+    results_table, _, _ = _unit_benchmark(
+        table=table,
+        metadata=metadata,
+        algorithm=algorithm,
+        params=params,
+        distance_matrix=distance_matrix,
+        n_repeats=n_repeats,
+    )
 
     return results_table
 
@@ -56,4 +49,5 @@ def _unit_benchmark(
         worker.cv_fold(train_index, test_index)
 
     results_table = worker.tabularize()
+
     return results_table, worker.best_model, worker.best_accuracy
