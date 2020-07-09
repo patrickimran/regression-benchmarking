@@ -56,4 +56,4 @@ def _unit_benchmark(
         worker.cv_fold(train_index, test_index)
 
     results_table = worker.tabularize()
-    return results_table, worker.best_model
+    return results_table, worker.best_model, worker.best_accuracy

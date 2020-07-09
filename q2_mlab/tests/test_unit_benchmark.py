@@ -1,9 +1,11 @@
 import pandas as pd
+import biom
 import json
 from os import path
 from qiime2 import Artifact
 from qiime2.plugin.testing import TestPluginBase
 from sklearn.model_selection import ParameterGrid
+import q2_mlab
 
 
 class UnitBenchmarkTests(TestPluginBase):
@@ -174,6 +176,19 @@ class UnitBenchmarkTests(TestPluginBase):
             "F1",
         ] + ["PROB_CLASS_" + str(i) for i in range(self.n_classes)]
         self.assertCountEqual(list(results_df.columns), expected_cols)
+
+    def testReturnBestModel(self):
+
+        results, best_model, best_accuracy = q2_mlab._unit_benchmark(
+            table=self.table.view(biom.Table),
+            metadata=self.metadata.view(pd.Series),
+            algorithm="LinearSVC",
+            params=self.svc_params,
+            n_repeats=self.n_repeats,
+        )
+
+        self.assertTrue(best_model)
+        self.assertEquals(results['ACCURACY'].max(), best_accuracy)
 
     def testKNNDistanceMatrix(self):
         pass
