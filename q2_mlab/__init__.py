@@ -7,7 +7,7 @@
 # ----------------------------------------------------------------------------
 
 from ._preprocess import preprocess
-from ._benchmark import unit_benchmark
+from ._benchmark import unit_benchmark, _unit_benchmark
 from ._version import get_versions
 from .learningtask import LearningTask, ClassificationTask, RegressionTask
 from ._type import Target, Results
@@ -20,6 +20,7 @@ del get_versions
 __all__ = [
     "preprocess",
     "unit_benchmark",
+    "_unit_benchmark",
     "ResultsDirectoryFormat",
     "ResultsFormat",
     "Target",

@@ -67,6 +67,8 @@ class LearningTask(ABC):
         self.n_repeats = n_repeats
         self.n_classes = self.metadata.nunique()
         self.table_size = self.n_repeats * self.y.shape[0]
+        self.best_accuracy = -1
+        self.best_model = None
 
         self.results = {}
         self.results["CV_IDX"] = np.zeros(self.table_size, dtype=int)
@@ -148,9 +150,9 @@ class ClassificationTask(LearningTask):
 
         # Start timing
         start = time.process_time()
-        m = self.learner(**self.params)
-        m.fit(X_train, y_train)
-        y_pred = m.predict(X_test)
+        model = self.learner(**self.params)
+        model.fit(X_train, y_train)
+        y_pred = model.predict(X_test)
         # End timimg
         end = time.process_time()
 
@@ -160,7 +162,7 @@ class ClassificationTask(LearningTask):
         use_probabilities = hasattr(self.learner, "predict_proba")
 
         if use_probabilities:
-            probas = m.predict_proba(X_test)
+            probas = model.predict_proba(X_test)
         else:
             probas = np.nan
 
@@ -206,6 +208,10 @@ class ClassificationTask(LearningTask):
 
         self.cv_idx += 1
         self.idx += nrows
+
+        if acc_score > self.best_accuracy:
+            self.best_accuracy = acc_score
+            self.best_model = model
 
 
 class RegressionTask(LearningTask):

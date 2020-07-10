@@ -13,6 +13,27 @@ def unit_benchmark(
     n_repeats: int = 3,
 ) -> pd.DataFrame:
 
+    results_table, _, _ = _unit_benchmark(
+        table=table,
+        metadata=metadata,
+        algorithm=algorithm,
+        params=params,
+        distance_matrix=distance_matrix,
+        n_repeats=n_repeats,
+    )
+
+    return results_table
+
+
+def _unit_benchmark(
+    table: biom.Table,
+    metadata: pd.Series,
+    algorithm: str,
+    params: str,
+    distance_matrix: DistanceMatrix = None,
+    n_repeats: int = 3,
+) -> pd.DataFrame:
+
     if algorithm in RegressionTask.algorithms:
         worker = RegressionTask(
             table, metadata, algorithm, params, n_repeats, distance_matrix
@@ -29,4 +50,4 @@ def unit_benchmark(
 
     results_table = worker.tabularize()
 
-    return results_table
+    return results_table, worker.best_model, worker.best_accuracy
