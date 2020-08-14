@@ -2,6 +2,7 @@ import json
 import numpy as np
 import pandas as pd
 import time
+import pkg_resources
 from abc import ABC
 
 # CV Methods
@@ -21,6 +22,7 @@ from sklearn.metrics import (
 )
 
 # Algorithms
+from sklearn.pipeline import Pipeline
 from sklearn.neighbors import KNeighborsRegressor, KNeighborsClassifier
 from sklearn.linear_model import RidgeClassifier, Ridge
 from xgboost import XGBRegressor, XGBClassifier
@@ -39,13 +41,17 @@ from sklearn.ensemble import (
 )
 from sklearn.mixture import BayesianGaussianMixture
 from sklearn.naive_bayes import ComplementNB
-from lightgbm import LGBMClassifier, LGBMRegressor
 from sklearn.neural_network import MLPClassifier, MLPRegressor
 from sklearn.linear_model import ElasticNet, Lasso
 
 
 class LearningTask(ABC):
     algorithms = {}
+
+    def iter_entry_points(cls):
+        for entry_point in pkg_resources.iter_entry_points(
+                group='q2_mlab.models'):
+            yield entry_point
 
     def __init__(
         self,
@@ -56,12 +62,26 @@ class LearningTask(ABC):
         n_repeats,
         distance_matrix=None,
     ):
-        self.distance_matrix = distance_matrix
+        # Add any custom algorithms from entry points
+        for entry_point in self.iter_entry_points():
+            name = entry_point.name
+            method = entry_point.load()
+            self.algorithms.update({name: method})
+
+        self.learner = self.algorithms[algorithm]
+        print(params)
         self.params = json.loads(params)
+        if isinstance(self.learner, Pipeline):
+            # Assumes that the last step in the pipeline is the model:
+            prefix = list(self.learner.named_steps)[-1] + "__"
+            # And adds the prefix of that last step to our param dict's keys
+            # so we can access that step's parameters.
+            newparams = {prefix + key: val for key, val in self.params.items()}
+            self.params = newparams
         self.X = table.transpose().matrix_data
         self.metadata = metadata
         self.y = self.metadata.to_numpy()
-        self.learner = self.algorithms[algorithm]
+        self.distance_matrix = distance_matrix
         self.cv_idx = 0
         self.idx = 0
         self.n_repeats = n_repeats
@@ -109,7 +129,6 @@ class ClassificationTask(LearningTask):
         "BaggingClassifier": BaggingClassifier,
         "ExtraTreesClassifier": ExtraTreesClassifier,
         "HistGradientBoostingClassifier": HistGradientBoostingClassifier,
-        "LGBMClassifier": LGBMClassifier,
         "BayesianGaussianMixture": BayesianGaussianMixture,
         "ComplementNB": ComplementNB,
         "BayesianGaussianMixture": BayesianGaussianMixture,
@@ -150,7 +169,8 @@ class ClassificationTask(LearningTask):
 
         # Start timing
         start = time.process_time()
-        model = self.learner(**self.params)
+        model = self.learner()
+        model.set_params(**self.params)
         model.fit(X_train, y_train)
         y_pred = model.predict(X_test)
         # End timimg
@@ -225,7 +245,6 @@ class RegressionTask(LearningTask):
         "BaggingRegressor": BaggingRegressor,
         "ExtraTreesRegressor": ExtraTreesRegressor,
         "HistGradientBoostingRegressor": HistGradientBoostingRegressor,
-        "LGBMRegressor": LGBMRegressor,
         "LinearSVR": LinearSVR,
         "RidgeRegressor": Ridge,
         "MLPRegressor": MLPRegressor,
@@ -263,9 +282,10 @@ class RegressionTask(LearningTask):
 
         # Start timing
         start = time.process_time()
-        m = self.learner(**self.params)
-        m.fit(X_train, y_train)
-        y_pred = m.predict(X_test)
+        model = self.learner()
+        model.set_params(**self.params)
+        model.fit(X_train, y_train)
+        y_pred = model.predict(X_test)
         # End timimg
         end = time.process_time()
 
