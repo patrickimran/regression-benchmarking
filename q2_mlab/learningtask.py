@@ -125,6 +125,7 @@ class ClassificationTask(LearningTask):
         "RandomForestClassifier": RandomForestClassifier,
         "GradientBoostingClassifier": GradientBoostingClassifier,
         "XGBClassifier": XGBClassifier,
+        "LinearSVC": LinearSVC,
         "LogisticRegression": LogisticRegression,
         "AdaBoostClassifier": AdaBoostClassifier,
         "BaggingClassifier": BaggingClassifier,
