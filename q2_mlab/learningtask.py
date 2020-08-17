@@ -24,7 +24,9 @@ from sklearn.metrics import (
 # Algorithms
 from sklearn.pipeline import Pipeline
 from sklearn.neighbors import KNeighborsRegressor, KNeighborsClassifier
-from sklearn.linear_model import RidgeClassifier, Ridge
+from sklearn.linear_model import (
+    RidgeClassifier, Ridge, LogisticRegression, LinearRegression,
+)
 from xgboost import XGBRegressor, XGBClassifier
 from sklearn.svm import LinearSVR, LinearSVC
 from sklearn.svm import SVC, SVR
@@ -123,15 +125,15 @@ class ClassificationTask(LearningTask):
         "RandomForestClassifier": RandomForestClassifier,
         "GradientBoostingClassifier": GradientBoostingClassifier,
         "XGBClassifier": XGBClassifier,
-        "RidgeClassifier": RidgeClassifier,
+        "LinearRegression": LinearRegression,
         "LinearSVC": LinearSVC,
+        "LogisticRegression": LogisticRegression,
         "AdaBoostClassifier": AdaBoostClassifier,
         "BaggingClassifier": BaggingClassifier,
         "ExtraTreesClassifier": ExtraTreesClassifier,
         "HistGradientBoostingClassifier": HistGradientBoostingClassifier,
         "BayesianGaussianMixture": BayesianGaussianMixture,
         "ComplementNB": ComplementNB,
-        "BayesianGaussianMixture": BayesianGaussianMixture,
         "MLPClassifier": MLPClassifier,
         "SVC": SVC,
     }
