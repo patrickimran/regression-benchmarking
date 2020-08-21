@@ -56,6 +56,10 @@ class ModelFactory:
         return SpecificModel
 
 
+# scikit-learn has some asymmetries between classifiers and regressors, e.g.,
+# `Lasso`'s classification equivalent is `LogisticRegression` with
+# `penalty='l1'`. You can use ModelFactory.get_model to create Estimator
+# classes that set specific parameters.
 LogisticRegressionLasso = ModelFactory.get_model(LogisticRegression,
                                                  penalty='l1')
 LogisticRegressionElasticNet = ModelFactory.get_model(LogisticRegression,
