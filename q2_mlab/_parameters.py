@@ -187,14 +187,12 @@ class ParameterGrids:
             "normalize": [True, False],
         },
         "LogisticRegression_Lasso": {
-            "penalty": ["l1"],
             # these are the only solvers that support l1 penalty
             "solver": ["saga", "liblinear"],
             "C": [1 / alpha for alpha in lr_alphas],
             "random_state": [2020],
         },
         "LogisticRegression_ElasticNet": {
-            "penalty": ["elasticnet"],
             # this is the only solver that supports elasticnet penalty
             "solver": ["saga"],
             "C": [1 / alpha for alpha in lr_alphas],

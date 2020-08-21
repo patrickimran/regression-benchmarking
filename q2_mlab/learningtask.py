@@ -47,6 +47,21 @@ from sklearn.neural_network import MLPClassifier, MLPRegressor
 from sklearn.linear_model import ElasticNet, Lasso
 
 
+class ModelFactory:
+    @staticmethod
+    def get_model(model_class, **outer_kwargs):
+        class SpecificModel(model_class):
+            def __init__(self, **kwargs):
+                super().__init__(**outer_kwargs, **kwargs)
+        return SpecificModel
+
+
+LogisticRegressionLasso = ModelFactory.get_model(LogisticRegression,
+                                                 penalty='l1')
+LogisticRegressionElasticNet = ModelFactory.get_model(LogisticRegression,
+                                                      penalty='elasticnet')
+
+
 class LearningTask(ABC):
     algorithms = {}
 
@@ -121,7 +136,6 @@ class ClassificationTask(LearningTask):
 
     algorithms = {
         "KNeighborsClassifier": KNeighborsClassifier,
-        "RidgeClassifier": RidgeClassifier,
         "RandomForestClassifier": RandomForestClassifier,
         "GradientBoostingClassifier": GradientBoostingClassifier,
         "XGBClassifier": XGBClassifier,
@@ -137,9 +151,8 @@ class ClassificationTask(LearningTask):
         "RadialSVC": SVC,
         "SigmoidSVC": SVC,
         "RidgeClassifier": RidgeClassifier,
-        "LogisticRegression_ElasticNet": LogisticRegression,
-        "LogisticRegression_Lasso": LogisticRegression,
-        "LogisticRegression": LogisticRegression
+        "LogisticRegression_ElasticNet": LogisticRegressionElasticNet,
+        "LogisticRegression_Lasso": LogisticRegressionLasso,
     }
 
     def __init__(
