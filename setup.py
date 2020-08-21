@@ -36,6 +36,7 @@ setup(
         'pandas',
         'jinja2',
         'tqdm',
-        'biom-format'
+        'biom-format',
+        'lightgbm'
     ]
 )
