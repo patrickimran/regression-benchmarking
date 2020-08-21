@@ -125,7 +125,6 @@ class ClassificationTask(LearningTask):
         "RandomForestClassifier": RandomForestClassifier,
         "GradientBoostingClassifier": GradientBoostingClassifier,
         "XGBClassifier": XGBClassifier,
-        "LinearSVC": LinearSVC,
         "LogisticRegression": LogisticRegression,
         "AdaBoostClassifier": AdaBoostClassifier,
         "BaggingClassifier": BaggingClassifier,
@@ -134,7 +133,13 @@ class ClassificationTask(LearningTask):
         "BayesianGaussianMixture": BayesianGaussianMixture,
         "ComplementNB": ComplementNB,
         "MLPClassifier": MLPClassifier,
-        "SVC": SVC,
+        "LinearSVC": LinearSVC,
+        "RadialSVC": SVC,
+        "SigmoidSVC": SVC,
+        "RidgeClassifier": RidgeClassifier,
+        "LogisticRegression_ElasticNet": LogisticRegression,
+        "LogisticRegression_Lasso": LogisticRegression,
+        "LogisticRegression": LogisticRegression
     }
 
     def __init__(
@@ -250,7 +255,9 @@ class RegressionTask(LearningTask):
         "LinearSVR": LinearSVR,
         "RidgeRegressor": Ridge,
         "MLPRegressor": MLPRegressor,
-        "SVR": SVR,
+        "LinearSVR": LinearSVR,
+        "RadialSVR": SVR,
+        "SigmoidSVR": SVR,
         "ElasticNet": ElasticNet,
         "Lasso": Lasso,
     }
