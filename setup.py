@@ -27,5 +27,15 @@ setup(
                               'citations.bib',
                               'templates/array_job_template.sh']},
     zip_safe=False,
-    install_requires=['xgboost', 'calour', 'click', 'tqdm']
+    install_requires=[
+        'xgboost',
+        'calour',
+        'click',
+        'scikit-learn',
+        'numpy',
+        'pandas',
+        'jinja2',
+        'tqdm',
+        'biom-format'
+    ]
 )
