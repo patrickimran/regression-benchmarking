@@ -34,7 +34,9 @@ def create_synthetic_data(
     X[is_nan] = 0
 
     if task == Task.REGRESSION:
-        y = np.random.normal(size=n_samples)
+        # We can assume non-negative target variables, a requirement for
+        # 'poisson' loss in HistGradientBoostingRegressor
+        y = np.absolute(np.random.normal(size=n_samples))
     else:
         assert task == Task.CLASSIFICATION
         # just alternate y labels so we can make sure we get at least one
@@ -53,6 +55,10 @@ class ParameterGridsTests(unittest.TestCase):
         # Boosting
         "GradientBoostingRegressor",
         "XGBRegressor",
+        "LGBMRegressor_RF",
+        "LGBMRegressor_GBDT",
+        "HistGradientBoostingRegressor",
+        "AdaBoostRegressor",
         # Linear/Logistic Reg
         "RidgeRegressor",
         "ElasticNet",
@@ -73,6 +79,10 @@ class ParameterGridsTests(unittest.TestCase):
         # Boosting
         "GradientBoostingClassifier",
         "XGBClassifier",
+        "LGBMClassifier_RF",
+        "LGBMClassifier_GBDT",
+        "HistGradientBoostingClassifier",
+        "AdaBoostClassifier",
         # Linear/Logistic Reg
         "RidgeClassifier",
         "LogisticRegression_ElasticNet",
@@ -91,10 +101,10 @@ class ParameterGridsTests(unittest.TestCase):
         self.reduced_hyperparameter_space = os.environ.get("TRAVIS") == 'true'
         self.reduced_size = 0.1  # % to reduce parameter spaces by for Travis
         self.X_reg, self.y_reg = create_synthetic_data(
-            n_samples=3, n_features=4, task=Task.REGRESSION,
+            n_samples=16, n_features=4, task=Task.REGRESSION,
         )
         self.X_class, self.y_class = create_synthetic_data(
-            n_samples=3, n_features=4, task=Task.CLASSIFICATION,
+            n_samples=16, n_features=4, task=Task.CLASSIFICATION,
         )
 
     def test_coverage(self):
