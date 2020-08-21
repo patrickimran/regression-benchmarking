@@ -41,12 +41,17 @@ from sklearn.ensemble import (
     HistGradientBoostingClassifier,
     HistGradientBoostingRegressor,
 )
-from sklearn.mixture import BayesianGaussianMixture
-from sklearn.naive_bayes import ComplementNB
+from lightgbm import LGBMClassifier, LGBMRegressor
 from sklearn.neural_network import MLPClassifier, MLPRegressor
 from sklearn.linear_model import ElasticNet, Lasso
 
 
+# Not all regressors in Scikit-Learn have corresponding classifiers,
+# e.g. "Lasso" classification is implemented in LogisticRegression with L1
+# penalty.
+# This ModelFactory enforces the names of models correspond appropriately to
+# the defining parameters, e.g. any model using named RadialSVR must have
+# 'rbf' as the kernel.
 class ModelFactory:
     @staticmethod
     def get_model(model_class, **outer_kwargs):
@@ -64,6 +69,18 @@ LogisticRegressionLasso = ModelFactory.get_model(LogisticRegression,
                                                  penalty='l1')
 LogisticRegressionElasticNet = ModelFactory.get_model(LogisticRegression,
                                                       penalty='elasticnet')
+RadialSVR = ModelFactory.get_model(SVR, kernel='rbf')
+SigmoidSVR = ModelFactory.get_model(SVR, kernel='sigmoid')
+RadialSVC = ModelFactory.get_model(SVC, kernel='rbf')
+SigmoidSVC = ModelFactory.get_model(SVC, kernel='sigmoid')
+LGBMRegressorGBDT = ModelFactory.get_model(LGBMRegressor,
+                                           boosting_type='gbdt')
+LGBMRegressorRF = ModelFactory.get_model(LGBMRegressor,
+                                         boosting_type='rf')
+LGBMClassifierGBDT = ModelFactory.get_model(LGBMClassifier,
+                                            boosting_type='gbdt')
+LGBMClassifierRF = ModelFactory.get_model(LGBMClassifier,
+                                          boosting_type='rf')
 
 
 class LearningTask(ABC):
@@ -148,15 +165,15 @@ class ClassificationTask(LearningTask):
         "BaggingClassifier": BaggingClassifier,
         "ExtraTreesClassifier": ExtraTreesClassifier,
         "HistGradientBoostingClassifier": HistGradientBoostingClassifier,
-        "BayesianGaussianMixture": BayesianGaussianMixture,
-        "ComplementNB": ComplementNB,
         "MLPClassifier": MLPClassifier,
         "LinearSVC": LinearSVC,
-        "RadialSVC": SVC,
-        "SigmoidSVC": SVC,
+        "RadialSVC": RadialSVC,
+        "SigmoidSVC": SigmoidSVC,
         "RidgeClassifier": RidgeClassifier,
         "LogisticRegression_ElasticNet": LogisticRegressionElasticNet,
         "LogisticRegression_Lasso": LogisticRegressionLasso,
+        "LGBMClassifier_GBDT": LGBMClassifierGBDT,
+        "LGBMClassifier_RF": LGBMClassifierRF,
     }
 
     def __init__(
@@ -266,6 +283,7 @@ class RegressionTask(LearningTask):
         "XGBRegressor": XGBRegressor,
         "AdaBoostRegressor": AdaBoostRegressor,
         "BaggingRegressor": BaggingRegressor,
+        "LGBMRegressor": LGBMRegressor,
         "ExtraTreesRegressor": ExtraTreesRegressor,
         "HistGradientBoostingRegressor": HistGradientBoostingRegressor,
         "LinearRegression": LinearRegression,
@@ -273,10 +291,12 @@ class RegressionTask(LearningTask):
         "RidgeRegressor": Ridge,
         "MLPRegressor": MLPRegressor,
         "LinearSVR": LinearSVR,
-        "RadialSVR": SVR,
-        "SigmoidSVR": SVR,
+        "RadialSVR": RadialSVR,
+        "SigmoidSVR": SigmoidSVR,
         "ElasticNet": ElasticNet,
         "Lasso": Lasso,
+        "LGBMRegressor_GBDT": LGBMRegressorGBDT,
+        "LGBMRegressor_RF": LGBMRegressorRF,
     }
 
     def __init__(
