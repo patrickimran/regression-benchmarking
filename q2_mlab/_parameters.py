@@ -1,20 +1,29 @@
 import numpy as np
 from sklearn.model_selection import ParameterGrid
+from itertools import combinations
 
 
 class ParameterGrids:
 
-    lr_alphas = [1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 0.1, 0.2, 0.5, 0.9, 0.99]
+    lr_alphas = [10 ** (-1 * i) for i in range(10, 1, -1)] + \
+                list(np.arange(0.05, 1, 0.05))
+    l1_ratios = list(np.arange(0.05, 1, 0.05))
+
+    mlp_hidden_layer_grids = []
+    hidden_layer_sizes = [10, 50, 100, 200, 500]
+    for r in range(1, 4):
+        for comb in combinations(hidden_layer_sizes, r):
+            mlp_hidden_layer_grids.append(hidden_layer_sizes)
 
     full_grids = {
         "RandomForestClassifier": {
-            "n_estimators": [1000, 5000],
+            "n_estimators": [10, 100, 1000, 5000],
             "criterion": ["gini", "entropy"],
             "max_features": (
                 ["sqrt", "log2", None] + list(np.arange(0.2, 1, 0.2))
             ),
             "max_samples": [0.25, 0.5, 0.75, None],
-            "max_depth": [None],
+            "max_depth": [None, 10, 100],
             "n_jobs": [-1],
             "random_state": [2020],
             "bootstrap": [True],
@@ -22,13 +31,13 @@ class ParameterGrids:
             "min_samples_leaf": list(np.arange(0.01, 0.5, 0.2)) + [1],
         },
         "RandomForestRegressor": {
-            "n_estimators": [1000, 5000],
+            "n_estimators": [10, 100, 1000, 5000],
             "criterion": ["mse", "mae"],
             "max_features": (
                 ["sqrt", "log2", None] + list(np.arange(0.2, 1, 0.2))
             ),
             "max_samples": [0.25, 0.5, 0.75, None],
-            "max_depth": [None],
+            "max_depth": [None, 10, 100],
             "n_jobs": [-1],
             "random_state": [2020],
             "bootstrap": [True],
@@ -163,7 +172,7 @@ class ParameterGrids:
         },
         "ElasticNet": {
             "alpha": lr_alphas,
-            "l1_ratio": [0.1, 0.3, 0.5, 0.7, 0.9],
+            "l1_ratio": l1_ratios,
             "normalize": [True, False],
             "positive": [True, False],
             "random_state": [2020],
@@ -189,7 +198,7 @@ class ParameterGrids:
             # this is the only solver that supports elasticnet penalty
             "solver": ["saga"],
             "C": [1 / alpha for alpha in lr_alphas],
-            "l1_ratio": [0.1, 0.3, 0.5, 0.7, 0.9],
+            "l1_ratio": l1_ratios,
             "random_state": [2020],
         },
         "LogisticRegression": {
@@ -198,33 +207,27 @@ class ParameterGrids:
             "random_state": [2020],
         },
         "KNeighborsRegressor": {
-            "n_neighbors": [1, 5, 10, 20, 40],
+            "n_neighbors": list(range(1, 50)),
             "weights": ["uniform", "distance"],
-            # TODO is what about UniFrac, can we use pre-computed
-            #  distance matrix?
-            # https://docs.scipy.org/doc/scipy/reference/spatial.distance.html # noqa
             "metric": ["braycurtis", "jaccard"],
         },
         "KNeighborsClassifier": {
-            "n_neighbors": [1, 5, 10, 20, 40],
+            "n_neighbors": list(range(1, 50)),
             "weights": ["uniform", "distance"],
-            # TODO is what about UniFrac, can we use pre-computed
-            #  distance matrix?
-            # https://docs.scipy.org/doc/scipy/reference/spatial.distance.html # noqa
             "metric": ["braycurtis", "jaccard"],
         },
         "MLPClassifier": {
-            "hidden_layer_sizes": [(50,), (100,), (50, 50), (100, 100)],
-            "solver": ["adam", "sgd"],
-            "activation": ["tanh", "relu"],
-            "learning_rate": ["constant", "adaptive"],
+            "hidden_layer_sizes": mlp_hidden_layer_grids,
+            "solver": ["adam", "sgd", "lbfgs"],
+            "activation": ["tanh", "relu", "logistic", "identity"],
+            "learning_rate": ["constant", "adaptive", "invscaling"],
             "random_state": [2020],
         },
         "MLPRegressor": {
-            "hidden_layer_sizes": [(50,), (100,), (50, 50), (100, 100)],
-            "solver": ["adam", "sgd"],
-            "activation": ["tanh", "relu"],
-            "learning_rate": ["constant", "adaptive"],
+            "hidden_layer_sizes": mlp_hidden_layer_grids,
+            "solver": ["adam", "sgd", "lbfgs"],
+            "activation": ["tanh", "relu", "logistic", "identity"],
+            "learning_rate": ["constant", "adaptive", "invscaling"],
             "random_state": [2020],
         },
     }
