@@ -81,7 +81,7 @@ class ParameterGrids:
             "max_depth": max_depth,
             "learning_rate": [2e-1, 1e-2, 1e-3],
             "n_estimators": n_estimators,
-            "objective": ["reg:linear"],
+            "objective": ["reg:squarederror"],
             "subsample": [0.5, 0.75, 1.0],
             "min_child_weight": [1, 5, 7],
             "colsample_bytree": [0.5, 0.75, 1.0],
