@@ -166,7 +166,7 @@ class ParameterGrids:
             "n_jobs": n_jobs,
         },
         "HistGradientBoostingRegressor": {
-            "loss": ["poisson"],
+            "loss": ["poisson", "least_squares", "least_absolute_deviation"],
             "learning_rate": [2e-1, 1e-2, 1e-3, 1e-4],
             "max_leaf_nodes": [8, 31, 90, 900],
             "max_depth": max_depth,
