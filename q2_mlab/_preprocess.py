@@ -156,7 +156,7 @@ def preprocess(
     print("Generating Distance Matrices...")
     for metric in ["jaccard", "braycurtis", "jensenshannon", "aitchison"]:
         beta_results = beta(
-            table=filtered_rarefied_table, metric=metric, n_jobs=n_jobs
+            table=filtered_rarefied_table, metric=metric, threads=n_jobs
         )
         results += beta_results
     if phylogeny:
