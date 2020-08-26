@@ -2,7 +2,6 @@ import json
 import numpy as np
 import pandas as pd
 import time
-import pkg_resources
 from abc import ABC
 
 # CV Methods
@@ -86,11 +85,6 @@ LGBMClassifierRF = ModelFactory.get_model(LGBMClassifier,
 class LearningTask(ABC):
     algorithms = {}
 
-    def iter_entry_points(cls):
-        for entry_point in pkg_resources.iter_entry_points(
-                group='q2_mlab.models'):
-            yield entry_point
-
     def __init__(
         self,
         table,
@@ -100,11 +94,6 @@ class LearningTask(ABC):
         n_repeats,
         distance_matrix=None,
     ):
-        # Add any custom algorithms from entry points
-        for entry_point in self.iter_entry_points():
-            name = entry_point.name
-            method = entry_point.load()
-            self.algorithms.update({name: method})
 
         self.learner = self.algorithms[algorithm]
         print(params)
@@ -209,8 +198,7 @@ class ClassificationTask(LearningTask):
 
         # Start timing
         start = time.process_time()
-        model = self.learner()
-        model.set_params(**self.params)
+        model = self.learner(**self.params)
         model.fit(X_train, y_train)
         y_pred = model.predict(X_test)
         # End timimg
