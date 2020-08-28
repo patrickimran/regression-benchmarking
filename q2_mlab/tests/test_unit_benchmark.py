@@ -188,7 +188,7 @@ class UnitBenchmarkTests(TestPluginBase):
         )
 
         self.assertTrue(best_model)
-        self.assertEquals(results['ACCURACY'].max(), best_accuracy)
+        self.assertEqual(results['ACCURACY'].max(), best_accuracy)
 
     def testKNNDistanceMatrix(self):
         pass
