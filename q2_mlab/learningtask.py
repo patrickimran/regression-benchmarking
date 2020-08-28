@@ -284,7 +284,7 @@ class RegressionTask(LearningTask):
         self.results["RUNTIME"][curr_indices] = runtime
         self.results["CV_IDX"][curr_indices] = self.cv_idx
         self.results["Y_PRED"][curr_indices] = y_pred
-        self.results["Y_TRUE"][curr_indices] = y_test_ids
+        self.results["Y_TRUE"][curr_indices] = y_test
         self.results["SAMPLE_ID"][curr_indices] = y_test_ids
 
         if not self.contains_nan(y_pred):
