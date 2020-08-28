@@ -61,7 +61,9 @@ fi
 
 echo Chunk number ${PBS_ARRAYID} size is ${chunk_size}
 
-head -n $offset $input | tail -n $chunk_size > {{ RESULTS_DIR }}/subset${PBS_ARRAYID}.list
+SUBSETLIST={{ RESULTS_DIR }}/subset${PBS_ARRAYID}.list
+
+head -n $offset $input | tail -n $chunk_size > ${SUBSETLIST}
 
 FORCE={{ FORCE_OVERWRITE }}
 while IFS=$'\t' read -r idx params
@@ -79,4 +81,4 @@ do
             --o-result-table ${RESULTS} \
             --verbose
     fi
-done < subset${PBS_ARRAYID}.list
+done < ${SUBSETLIST}
