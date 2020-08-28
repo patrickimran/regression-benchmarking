@@ -274,14 +274,24 @@ class ParameterGrids:
                 "random_state": random_state,
             },
         ],
-        "RidgeRegressor": {
-            "alpha": lr_alphas,
-            "fit_intercept": [True],
-            "normalize": [True, False],
-            "tol": [1e-1, 1e-2, 1e-3],
-            "solver": ["svd", "cholesky", "lsqr", "sparse_cg", "saga"],
-            "random_state": random_state,
-        },
+        "RidgeRegressor": [
+            {
+                "alpha": lr_alphas,
+                "fit_intercept": [True],
+                "normalize": [True, False],
+                "tol": [1e-1, 1e-2, 1e-3],
+                "solver": ["sparse_cg", "saga"],
+                "random_state": random_state,
+            },
+            {
+                "alpha": lr_alphas,
+                "fit_intercept": [False],
+                "normalize": [True, False],
+                "tol": [1e-1, 1e-2, 1e-3],
+                "solver": ["svd", "cholesky", "lsqr"],
+                "random_state": random_state,
+            },
+        ],
         "ElasticNet": {
             "alpha": lr_alphas,
             "l1_ratio": l1_ratios,
