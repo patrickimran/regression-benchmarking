@@ -191,7 +191,7 @@ class UnitBenchmarkTests(TestPluginBase):
         self.assertTrue(best_model)
         self.assertEqual(results['ACCURACY'].max(), best_accuracy)
 
-    def testResultTable(self):
+    def test_result_table(self):
 
         n_features = 10
         n_samples = 30
