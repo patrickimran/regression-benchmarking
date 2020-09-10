@@ -2,7 +2,6 @@ import json
 import numpy as np
 import pandas as pd
 import time
-import pkg_resources
 from abc import ABC
 
 # CV Methods
@@ -24,7 +23,9 @@ from sklearn.metrics import (
 # Algorithms
 from sklearn.pipeline import Pipeline
 from sklearn.neighbors import KNeighborsRegressor, KNeighborsClassifier
-from sklearn.linear_model import RidgeClassifier, Ridge
+from sklearn.linear_model import (
+    RidgeClassifier, Ridge, LogisticRegression, LinearRegression,
+)
 from xgboost import XGBRegressor, XGBClassifier
 from sklearn.svm import LinearSVR, LinearSVC
 from sklearn.svm import SVC, SVR
@@ -39,19 +40,50 @@ from sklearn.ensemble import (
     HistGradientBoostingClassifier,
     HistGradientBoostingRegressor,
 )
-from sklearn.mixture import BayesianGaussianMixture
-from sklearn.naive_bayes import ComplementNB
+from lightgbm import LGBMClassifier, LGBMRegressor
 from sklearn.neural_network import MLPClassifier, MLPRegressor
 from sklearn.linear_model import ElasticNet, Lasso
 
 
+# Not all regressors in Scikit-Learn have corresponding classifiers,
+# e.g. "Lasso" classification is implemented in LogisticRegression with L1
+# penalty.
+# This ModelFactory enforces the names of models correspond appropriately to
+# the defining parameters, e.g. any model using named RadialSVR must have
+# 'rbf' as the kernel.
+class ModelFactory:
+    @staticmethod
+    def get_model(model_class, **outer_kwargs):
+        class SpecificModel(model_class):
+            def __init__(self, **kwargs):
+                super().__init__(**outer_kwargs, **kwargs)
+        return SpecificModel
+
+
+# scikit-learn has some asymmetries between classifiers and regressors, e.g.,
+# `Lasso`'s classification equivalent is `LogisticRegression` with
+# `penalty='l1'`. You can use ModelFactory.get_model to create Estimator
+# classes that set specific parameters.
+LogisticRegressionLasso = ModelFactory.get_model(LogisticRegression,
+                                                 penalty='l1')
+LogisticRegressionElasticNet = ModelFactory.get_model(LogisticRegression,
+                                                      penalty='elasticnet')
+RadialSVR = ModelFactory.get_model(SVR, kernel='rbf')
+SigmoidSVR = ModelFactory.get_model(SVR, kernel='sigmoid')
+RadialSVC = ModelFactory.get_model(SVC, kernel='rbf')
+SigmoidSVC = ModelFactory.get_model(SVC, kernel='sigmoid')
+LGBMRegressorGBDT = ModelFactory.get_model(LGBMRegressor,
+                                           boosting_type='gbdt')
+LGBMRegressorRF = ModelFactory.get_model(LGBMRegressor,
+                                         boosting_type='rf')
+LGBMClassifierGBDT = ModelFactory.get_model(LGBMClassifier,
+                                            boosting_type='gbdt')
+LGBMClassifierRF = ModelFactory.get_model(LGBMClassifier,
+                                          boosting_type='rf')
+
+
 class LearningTask(ABC):
     algorithms = {}
-
-    def iter_entry_points(cls):
-        for entry_point in pkg_resources.iter_entry_points(
-                group='q2_mlab.models'):
-            yield entry_point
 
     def __init__(
         self,
@@ -62,11 +94,6 @@ class LearningTask(ABC):
         n_repeats,
         distance_matrix=None,
     ):
-        # Add any custom algorithms from entry points
-        for entry_point in self.iter_entry_points():
-            name = entry_point.name
-            method = entry_point.load()
-            self.algorithms.update({name: method})
 
         self.learner = self.algorithms[algorithm]
         print(params)
@@ -119,21 +146,23 @@ class ClassificationTask(LearningTask):
 
     algorithms = {
         "KNeighborsClassifier": KNeighborsClassifier,
-        "RidgeClassifier": RidgeClassifier,
         "RandomForestClassifier": RandomForestClassifier,
         "GradientBoostingClassifier": GradientBoostingClassifier,
         "XGBClassifier": XGBClassifier,
-        "RidgeClassifier": RidgeClassifier,
-        "LinearSVC": LinearSVC,
+        "LogisticRegression": LogisticRegression,
         "AdaBoostClassifier": AdaBoostClassifier,
         "BaggingClassifier": BaggingClassifier,
         "ExtraTreesClassifier": ExtraTreesClassifier,
         "HistGradientBoostingClassifier": HistGradientBoostingClassifier,
-        "BayesianGaussianMixture": BayesianGaussianMixture,
-        "ComplementNB": ComplementNB,
-        "BayesianGaussianMixture": BayesianGaussianMixture,
         "MLPClassifier": MLPClassifier,
-        "SVC": SVC,
+        "LinearSVC": LinearSVC,
+        "RadialSVC": RadialSVC,
+        "SigmoidSVC": SigmoidSVC,
+        "RidgeClassifier": RidgeClassifier,
+        "LogisticRegression_ElasticNet": LogisticRegressionElasticNet,
+        "LogisticRegression_Lasso": LogisticRegressionLasso,
+        "LGBMClassifier_GBDT": LGBMClassifierGBDT,
+        "LGBMClassifier_RF": LGBMClassifierRF,
     }
 
     def __init__(
@@ -169,8 +198,7 @@ class ClassificationTask(LearningTask):
 
         # Start timing
         start = time.process_time()
-        model = self.learner()
-        model.set_params(**self.params)
+        model = self.learner(**self.params)
         model.fit(X_train, y_train)
         y_pred = model.predict(X_test)
         # End timimg
@@ -243,14 +271,20 @@ class RegressionTask(LearningTask):
         "XGBRegressor": XGBRegressor,
         "AdaBoostRegressor": AdaBoostRegressor,
         "BaggingRegressor": BaggingRegressor,
+        "LGBMRegressor": LGBMRegressor,
         "ExtraTreesRegressor": ExtraTreesRegressor,
         "HistGradientBoostingRegressor": HistGradientBoostingRegressor,
+        "LinearRegression": LinearRegression,
         "LinearSVR": LinearSVR,
         "RidgeRegressor": Ridge,
         "MLPRegressor": MLPRegressor,
-        "SVR": SVR,
+        "LinearSVR": LinearSVR,
+        "RadialSVR": RadialSVR,
+        "SigmoidSVR": SigmoidSVR,
         "ElasticNet": ElasticNet,
         "Lasso": Lasso,
+        "LGBMRegressor_GBDT": LGBMRegressorGBDT,
+        "LGBMRegressor_RF": LGBMRegressorRF,
     }
 
     def __init__(
