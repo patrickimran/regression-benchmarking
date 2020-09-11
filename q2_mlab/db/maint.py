@@ -7,6 +7,7 @@ from datetime import datetime
 from qiime2 import Artifact
 from q2_mlab.db.schema import RegressionScore, Parameters, Base
 from q2_mlab.db.mapping import remap_parameters
+from q2_mlab.learningtask import RegressionTask
 from typing import Optional, Callable
 
 
@@ -35,21 +36,38 @@ def create(db_file: Optional[str] = None, echo=True) -> Engine:
 
 def add(engine: Engine, results: pd.DataFrame, parameters: dict,
         dataset: str, target: str, level: str, algorithm: str,
+        artifact_uuid: str,
         ) -> None:
     Session = sessionmaker(bind=engine)
     session = Session()
 
-    params = Parameters(**parameters)
-    session.add(params)
+    # check if parameters exists in db
+    query = session.query(Parameters).filter_by(**parameters)
+    params = query.one_or_none()
+
+    # if no record exists with these parameters, add them to the table
+    if params is None:
+        params = Parameters(**parameters)
+        session.add(params)
+    params_id = params.id
     session.flush()
 
+    # check if algorithm is valid
+    valid_algorithms = RegressionTask.algorithms
+    if algorithm not in valid_algorithms:
+        raise ValueError(f"Invalid choice '{algorithm}' for algorithm."
+                         f"Valid choices: {valid_algorithms}."
+                         )
+
+    time = datetime.now()
     for entry in results.iterrows():
-        score = RegressionScore(datetime=datetime.now(),
-                                parameters_id=params.id,
+        score = RegressionScore(datetime=time,
+                                parameters_id=params_id,
                                 dataset=dataset,
                                 target=target,
                                 level=level,
                                 algorithm=algorithm,
+                                artifact_uuid=artifact_uuid,
                                 **entry[1],
                                 )
         session.add(score)
@@ -57,8 +75,8 @@ def add(engine: Engine, results: pd.DataFrame, parameters: dict,
     session.commit()
 
 
-def add_from_qza(artifact_path: str,
-                 parameters_string: str,
+def add_from_qza(artifact: Artifact,
+                 parameters: dict,
                  dataset: str,
                  target: str,
                  level: str,
@@ -70,16 +88,17 @@ def add_from_qza(artifact_path: str,
 
     engine = engine_creator(db_file, echo=echo)
 
-    results = Artifact.load(artifact_path).view(pd.DataFrame)
+    results = artifact.view(pd.DataFrame)
+    artifact_uuid = str(artifact.uuid)
     # perform filtering on results (single entry per cross validation)
     results.drop(DROP_COLS, axis=1, inplace=True)
     results.drop_duplicates(inplace=True)
 
-    parameters = json.loads(parameters_string)
     # remap multi-type arguments, e.g., 'max_features'
     parameters = remap_parameters(parameters)
 
     add(engine, results, parameters,
         dataset=dataset, target=target, level=level, algorithm=algorithm,
+        artifact_uuid=artifact_uuid,
         )
     return engine

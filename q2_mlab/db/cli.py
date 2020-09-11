@@ -1,4 +1,6 @@
 import click
+import json
+from qiime2 import Artifact
 from q2_mlab.db.maint import (
     create as db_create,
     add_from_qza
@@ -76,9 +78,11 @@ def create(db, echo):
 )
 def add(db, echo, results_artifact, parameters, dataset, target, level,
         algorithm):
+    artifact = Artifact.load(results_artifact)
+    parameters = json.loads(parameters)
     add_from_qza(
-        artifact_path=results_artifact,
-        parameters_string=parameters,
+        artifact=artifact,
+        parameters=parameters,
         dataset=dataset,
         target=target,
         level=level,

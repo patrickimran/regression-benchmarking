@@ -36,11 +36,33 @@ class DBTestCase(unittest.TestCase):
         target = 'AGE'
         add(engine=engine, results=results, parameters=parameters,
             dataset=dataset, algorithm=algorithm, level=level, target=target,
+            artifact_uuid='some-uuid',
             )
 
+        param_df = pd.read_sql_table(Parameters.__tablename__, con=engine)
+        self.assertEqual(1, len(param_df))
+        score_df = pd.read_sql_table(RegressionScore.__tablename__, con=engine)
+        self.assertEqual(2, len(score_df))
+
+        add(engine=engine, results=results, parameters=parameters,
+            dataset=dataset, algorithm=algorithm, level=level, target=target,
+            artifact_uuid='some-uuid',
+            )
+        param_df = pd.read_sql_table(Parameters.__tablename__, con=engine)
+        self.assertEqual(1, len(param_df))
+        score_df = pd.read_sql_table(RegressionScore.__tablename__, con=engine)
+        self.assertEqual(4, len(score_df))
+
+        add(engine=engine, results=results, parameters={'activation': 'relu'},
+            dataset=dataset, algorithm=algorithm, level=level, target=target,
+            artifact_uuid='some-uuid',
+            )
+        param_df = pd.read_sql_table(Parameters.__tablename__, con=engine)
+        self.assertEqual(2, len(param_df))
+        score_df = pd.read_sql_table(RegressionScore.__tablename__, con=engine)
+        self.assertEqual(6, len(score_df))
+
     def test_add_from_qza(self):
-        fh = tempfile.NamedTemporaryFile(suffix='.qza')
-        qza_path = fh.name
         format_name = "SampleData[Results]"
 
         results = pd.DataFrame([
@@ -57,18 +79,16 @@ class DBTestCase(unittest.TestCase):
         imported_artifact = Artifact.import_data(format_name,
                                                  results
                                                  )
-        imported_artifact.save(qza_path)
 
-        parameters = '{"max_features": "log2", "gamma": 0.01, "normalize": '\
-                     'true}'
+        parameters = {"max_features": "log2", "gamma": 0.01, "normalize": True}
 
         dataset = 'FINRISK'
         algorithm = 'RandomForestRegressor'
         level = 'MG'
         target = 'AGE'
 
-        engine = add_from_qza(qza_path, parameters, dataset, target, level,
-                              algorithm,
+        engine = add_from_qza(imported_artifact, parameters, dataset, target,
+                              level, algorithm,
                               engine_creator=create,
                               echo=False,
                               )

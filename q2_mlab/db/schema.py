@@ -20,6 +20,7 @@ class Score:
     dataset = Column(String, nullable=False)
     level = Column(String, nullable=False)  # 16S, metagenomics, etc.
     target = Column(String, nullable=False)
+    artifact_uuid = Column(String, nullable=False)
     datetime = Column(DateTime)
     # could be cool to store the timedelta with Interval instead
     RUNTIME = Column(Float)
