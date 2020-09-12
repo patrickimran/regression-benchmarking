@@ -10,6 +10,8 @@ def string_or_number_remapper(parameter, value):
         return {parameter + '_STRING': value}
     elif isinstance(value, (int, float)):
         return {parameter + '_NUMBER': value}
+    else:
+        return dict()
 
 
 def serialize_remapper(parameter, value):

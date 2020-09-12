@@ -104,6 +104,42 @@ class DBTestCase(unittest.TestCase):
         self.assertCountEqual(score_df['R2'].values.tolist(), [0.7, 0.3])
         self.assertCountEqual(score_df['RUNTIME'].values.tolist(), [3.5, 2.3])
 
+    def test_add_from_qza_None_parameter(self):
+        format_name = "SampleData[Results]"
+
+        results = pd.DataFrame([
+            {'CV_IDX': 0, 'SAMPLE_ID': 'SAMPLE-1', 'Y_PRED': 4, 'Y_TRUE': 4,
+             'RUNTIME': 3.5, 'MAE': 2.4, 'RMSE': 7.24, 'R2': 0.7},
+        ])
+
+        imported_artifact = Artifact.import_data(format_name,
+                                                 results
+                                                 )
+
+        parameters = {"max_features": None, "gamma": 0.01, "normalize": True}
+
+        dataset = 'FINRISK'
+        algorithm = 'RandomForestRegressor'
+        level = 'MG'
+        target = 'AGE'
+
+        engine = add_from_qza(imported_artifact, parameters, dataset, target,
+                              level, algorithm,
+                              engine_creator=create,
+                              echo=False,
+                              )
+
+        param_df = pd.read_sql_table(Parameters.__tablename__, con=engine)
+        self.assertEqual(1, len(param_df))
+        self.assertListEqual(param_df['gamma_NUMBER'].values.tolist(), [0.01])
+        self.assertListEqual(param_df['max_features_STRING'].values.tolist(),
+                             [None])
+
+        score_df = pd.read_sql_table(RegressionScore.__tablename__, con=engine)
+        self.assertEqual(1, len(score_df))
+        self.assertCountEqual(score_df['R2'].values.tolist(), [0.7])
+        self.assertCountEqual(score_df['RUNTIME'].values.tolist(), [3.5])
+
 
 if __name__ == '__main__':
     unittest.main()
