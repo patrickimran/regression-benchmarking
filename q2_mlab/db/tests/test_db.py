@@ -103,6 +103,8 @@ class DBTestCase(unittest.TestCase):
         self.assertEqual(2, len(score_df))
         self.assertCountEqual(score_df['R2'].values.tolist(), [0.7, 0.3])
         self.assertCountEqual(score_df['RUNTIME'].values.tolist(), [3.5, 2.3])
+        print(score_df['parameters_id'])
+        self.assertEqual(score_df['parameters_id'].values.tolist(), [1, 1])
 
     def test_add_from_qza_None_parameter(self):
         format_name = "SampleData[Results]"

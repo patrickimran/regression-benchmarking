@@ -49,8 +49,8 @@ def add(engine: Engine, results: pd.DataFrame, parameters: dict,
     if params is None:
         params = Parameters(**parameters)
         session.add(params)
-    params_id = params.id
     session.flush()
+    params_id = params.id
 
     # check if algorithm is valid
     valid_algorithms = RegressionTask.algorithms
