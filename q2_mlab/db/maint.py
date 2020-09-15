@@ -43,7 +43,7 @@ def add(engine: Engine, results: pd.DataFrame, parameters: dict,
 
     # check if parameters exists in db
     query = session.query(Parameters).filter_by(**parameters)
-    params = query.one_or_none()
+    params = query.first()
 
     # if no record exists with these parameters, add them to the table
     if params is None:

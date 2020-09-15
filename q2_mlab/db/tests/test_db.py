@@ -103,7 +103,6 @@ class DBTestCase(unittest.TestCase):
         self.assertEqual(2, len(score_df))
         self.assertCountEqual(score_df['R2'].values.tolist(), [0.7, 0.3])
         self.assertCountEqual(score_df['RUNTIME'].values.tolist(), [3.5, 2.3])
-        print(score_df['parameters_id'])
         self.assertEqual(score_df['parameters_id'].values.tolist(), [1, 1])
 
     def test_add_from_qza_None_parameter(self):
@@ -141,6 +140,55 @@ class DBTestCase(unittest.TestCase):
         self.assertEqual(1, len(score_df))
         self.assertCountEqual(score_df['R2'].values.tolist(), [0.7])
         self.assertCountEqual(score_df['RUNTIME'].values.tolist(), [3.5])
+
+    def test_add_parameters_thrice(self):
+        format_name = "SampleData[Results]"
+
+        results = pd.DataFrame([
+            {'CV_IDX': 0, 'SAMPLE_ID': 'SAMPLE-1', 'Y_PRED': 4, 'Y_TRUE': 4,
+             'RUNTIME': 3.5, 'MAE': 2.4, 'RMSE': 7.24, 'R2': 0.7},
+        ])
+
+        imported_artifact = Artifact.import_data(format_name,
+                                                 results
+                                                 )
+
+        dataset = 'FINRISK'
+        algorithm = 'RandomForestRegressor'
+        level = 'MG'
+        target = 'AGE'
+
+        parameters = {'bootstrap': True, 'criterion': 'mse', 'max_depth': 7,
+                      'min_samples_leaf': 0.41, 'min_samples_split': 0.2,
+                      'n_estimators': 100, 'n_jobs': -1, 'random_state': 2020,
+                      }
+        engine = add_from_qza(imported_artifact,
+                              parameters,
+                              dataset,
+                              target,
+                              level, algorithm,
+                              engine_creator=create,
+                              echo=False,
+                              )
+
+        parameters = {'bootstrap': True, 'criterion': 'mse', 'max_depth': 7,
+                      'max_features': None, 'max_samples': None,
+                      'min_samples_leaf': 0.41, 'min_samples_split': 0.2,
+                      'n_estimators': 100, 'n_jobs': -1, 'random_state': 2020,
+                      }
+
+        for _ in range(3):
+            engine = add_from_qza(imported_artifact,
+                                  parameters,
+                                  dataset,
+                                  target,
+                                  level, algorithm,
+                                  engine_creator=create,
+                                  echo=False,
+                                  )
+
+        param_df = pd.read_sql_table(Parameters.__tablename__, con=engine)
+        self.assertEqual(1, len(param_df))
 
 
 if __name__ == '__main__':
