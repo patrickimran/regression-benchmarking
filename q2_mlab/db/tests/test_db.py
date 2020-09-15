@@ -5,6 +5,7 @@ from qiime2 import Artifact
 from q2_mlab.db.schema import Parameters, RegressionScore
 from q2_mlab.db.maint import (
     create,
+    create_engine,
     add,
     add_from_qza,
 )
@@ -158,6 +159,9 @@ class DBTestCase(unittest.TestCase):
         level = 'MG'
         target = 'AGE'
 
+        fh = tempfile.NamedTemporaryFile()
+        db_file = fh.name
+
         parameters = {'bootstrap': True, 'criterion': 'mse', 'max_depth': 7,
                       'min_samples_leaf': 0.41, 'min_samples_split': 0.2,
                       'n_estimators': 100, 'n_jobs': -1, 'random_state': 2020,
@@ -167,6 +171,7 @@ class DBTestCase(unittest.TestCase):
                               dataset,
                               target,
                               level, algorithm,
+                              db_file=db_file,
                               engine_creator=create,
                               echo=False,
                               )
@@ -183,12 +188,15 @@ class DBTestCase(unittest.TestCase):
                                   dataset,
                                   target,
                                   level, algorithm,
-                                  engine_creator=create,
+                                  db_file=db_file,
+                                  engine_creator=create_engine,
                                   echo=False,
                                   )
 
         param_df = pd.read_sql_table(Parameters.__tablename__, con=engine)
         self.assertEqual(1, len(param_df))
+
+        fh.close()
 
 
 if __name__ == '__main__':
