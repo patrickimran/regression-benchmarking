@@ -222,7 +222,7 @@ class UnitBenchmarkTests(TestPluginBase):
         for sampleid in results.SAMPLE_ID:
             self.assertTrue(sampleid in sample_ids)
         for y in results.Y_TRUE:
-            self.assertTrue(y in np.arange(n_features*n_samples))
+            self.assertTrue(y in list(test_data.flatten()))
 
         # Test Classification table
         results, _, _ = q2_mlab._unit_benchmark(
@@ -232,11 +232,10 @@ class UnitBenchmarkTests(TestPluginBase):
             params=self.svc_params,
             n_repeats=1
         )
-
         for sampleid in results.SAMPLE_ID:
             self.assertTrue(sampleid in sample_ids)
         for y in results.Y_TRUE:
-            self.assertTrue(y in np.arange(n_features*n_samples))
+            self.assertTrue(y in list(test_data.flatten()))
 
     def testKNNDistanceMatrix(self):
         pass
