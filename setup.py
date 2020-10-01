@@ -41,5 +41,7 @@ setup(
         'biom-format',
         'lightgbm',
         'sqlalchemy',
+        'bokeh',
+        'pyyaml',
     ]
 )
