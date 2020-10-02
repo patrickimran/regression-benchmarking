@@ -1,5 +1,4 @@
 from abc import abstractmethod
-from functools import partial
 from bokeh.models import Button, Select
 from bokeh.plotting import figure as bokeh_figure
 

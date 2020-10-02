@@ -15,10 +15,9 @@ from q2_mlab.plotting.components import (
     DataSourceComponent,
     SelectComponent,
 )
-from bokeh.plotting import figure, show
+from bokeh.plotting import figure
 from bokeh.transform import factor_cmap
 from bokeh.models import (
-    Circle,
     ColumnDataSource,
     CheckboxButtonGroup,
     TextInput,
@@ -52,9 +51,9 @@ def process_db_df(df):
 
     group_stats.columns = agg_columns = ['_'.join(col).strip() for
                                          col in group_stats.columns.values]
-    
+
     group_stats.reset_index(inplace=True)
-    
+
     min_by = ['dataset', 'target']
     group_mins = group_stats[agg_columns + min_by].groupby(min_by).min()
     indices = group_stats[['dataset', 'target']].to_records(
@@ -65,7 +64,7 @@ def process_db_df(df):
     relative_group_stats.columns = ['relative_' + col for
                                     col in relative_group_stats]
     group_stats = group_stats.join(relative_group_stats)
-        
+
     return group_stats
 
 
@@ -78,13 +77,13 @@ def find_segments(group_stats, across, groupby):
     seg_cols.remove(across)
 
     group_counts = group_stats[seg_cols + [across]].groupby(seg_cols).count()
-    
+
     max_n_pairs = group_counts[across].max()
     category_values = group_stats[across].unique()
 
     where = (group_counts[across] == max_n_pairs)
     keep_repeats = group_stats.set_index(seg_cols).loc[where]
-    
+
     keep_repeats_parts = []
 
     for i, sub_group in enumerate(category_values):
@@ -120,7 +119,7 @@ class CheckboxButtonGroupComponent(ComponentMixin):
         self.checkbox = CheckboxButtonGroup(**checkbox_kwargs)
         self.checkbox_change = None
         self.layout = self.checkbox
-        
+
     def set_mediator(self, mediator):
         super().set_mediator(mediator)
         event_name = 'checkbox-change'
@@ -154,7 +153,7 @@ DEFAULTS = {
 
 
 class AlgorithmScatter(Mediator, Plottable):
-    
+
     def __init__(self, x, y, engine, cmap=None):
         super().__init__()
         self.x = x
@@ -202,11 +201,11 @@ class AlgorithmScatter(Mediator, Plottable):
                component,
                event_name,
                *args, **kwargs,
-              ):
+               ):
         if (event_name == 'dropdown-select') and \
                 (component is self.x_var_select):
             self.x = component.select.value
-            self.scatter.scatter.glyph.x = self.x 
+            self.scatter.scatter.glyph.x = self.x
             self.scatter.layout.xaxis.axis_label = self.x
             self.segment.segment.glyph.x0 = '_'.join([self.x, self.seg_0])
             self.segment.segment.glyph.x1 = '_'.join([self.x, self.seg_1])
@@ -241,7 +240,7 @@ class AlgorithmScatter(Mediator, Plottable):
             self.segment.segment.data_source.data = segment_source.to_dict(
                 orient='list',
             )
-            
+
             selected_indices = self.scatter_source.data_source.selected.indices
             self.dataset_bars_source.data = self.get_dataset_counts(
                 indices=selected_indices,
@@ -272,12 +271,12 @@ class AlgorithmScatter(Mediator, Plottable):
                 *line_segment_ends,
                 new_segment_data
             )
-    
+
     def plot(self):
         self.data_raw = pd.read_sql_table(RegressionScore.__tablename__,
                                           con=self.engine,
                                           )
-        # TODO this is temporary        
+        # TODO this is temporary
         self.data_raw = self.data_raw.loc[
             self.data_raw['algorithm'] != 'MLPRegressor'
             ]
@@ -286,18 +285,18 @@ class AlgorithmScatter(Mediator, Plottable):
         self.seg_0, self.seg_1 = self.line_segment_pairs[
             self.line_segment_variable
         ]
-        
-        ### Data Setup
+
+        # ## Data Setup
         scatter_source = ColumnDataSource(df)
         self.scatter_source = DataSourceComponent(scatter_source)
         self.scatter_source.set_mediator(self)
-        
-        ### General Setup
+
+        # ## General Setup
         algorithms = sorted(df['algorithm'].unique())
         levels = sorted(df['level'].unique())
         datasets = sorted(df['dataset'].unique())
         plot_width = 600
-        
+
         categorical_variables = ['parameters_id', 'target', 'algorithm',
                                  'level', 'dataset']
         plottable_variables = list(sorted(
@@ -314,8 +313,8 @@ class AlgorithmScatter(Mediator, Plottable):
                              tools=self.scatter_tools,
                              output_backend='webgl',
                              )
-        
-        ### Segment Plot
+
+        # ## Segment Plot
         segment_source = ColumnDataSource(
             find_segments(self.data, across=self.line_segment_variable,
                           groupby=['parameters_id', 'algorithm', 'level',
@@ -323,7 +322,7 @@ class AlgorithmScatter(Mediator, Plottable):
                           )
         )
         self.segment_source = DataSourceComponent(scatter_source)
-        
+
         self.segment = SegmentComponentExt(data_source=segment_source)
         segment_kwargs = {
             'x0': self.x + '_' + self.seg_0,
@@ -334,11 +333,11 @@ class AlgorithmScatter(Mediator, Plottable):
             'line_color': '#A9A9A9',
         }
         self.segment.plot(
-            figure_kwargs=figure_kwargs, 
+            figure_kwargs=figure_kwargs,
             segment_kwargs=segment_kwargs,
         )
-        
-        ### Segment Visible button
+
+        # ## Segment Visible button
         self.segment_button = CheckboxButtonGroupComponent(
              checkbox_kwargs=dict(
                  labels=['Segments'],
@@ -355,9 +354,9 @@ class AlgorithmScatter(Mediator, Plottable):
         )
         self.segment_variable_select.set_mediator(self)
 
-        ### Scatter plot
+        # ## Scatter plot
         self.scatter = ScatterComponent()
-        
+
         scatter_kwargs = dict(x=self.x, y=self.y, source=scatter_source,
                               # legend_field='algorithm',
                               fill_color=algorithm_cmap,
@@ -368,9 +367,9 @@ class AlgorithmScatter(Mediator, Plottable):
             figure=self.segment.layout,
             scatter_kwargs=scatter_kwargs,
         )
-        
+
         scatter = self.scatter.layout
-        
+
         scatter.toolbar.logo = None
         scatter.xaxis.axis_label = self.x
         scatter.yaxis.axis_label = self.y
@@ -401,28 +400,28 @@ class AlgorithmScatter(Mediator, Plottable):
         scatter.plot_width = plot_width
         scatter.plot_height = 500
 
-        ### Variable Selection
+        # ## Variable Selection
         self.x_var_select = SelectComponent(
             select_kwargs=dict(
                 value=self.x,
                 title='X variable',
                 options=plottable_variables
             )
-        ) 
+        )
         self.x_var_select.set_mediator(self)
         x_select = self.x_var_select.select
-        
+
         self.y_var_select = SelectComponent(
             select_kwargs=dict(
                 value=self.y,
                 title='Y variable',
                 options=plottable_variables
             )
-        ) 
+        )
         self.y_var_select.set_mediator(self)
         y_select = self.y_var_select.select
-        
-        ### Dataset Stacked Hbars
+
+        # ## Dataset Stacked Hbars
         data_getter = self.get_dataset_counts
         self.dataset_bars_source = ColumnDataSource(data_getter())
         self.dataset_bars_figure = figure(y_range=datasets, plot_height=100)
@@ -434,8 +433,8 @@ class AlgorithmScatter(Mediator, Plottable):
             )
         self.dataset_bars_figure.toolbar_location = None
         self.dataset_bars_figure.plot_width = plot_width
-        
-        ### Level Stacked Hbars
+
+        # ## Level Stacked Hbars
         data_getter = self.get_level_counts
         self.level_bars_source = ColumnDataSource(data_getter())
         self.level_bars_figure = figure(y_range=levels, plot_height=100)
@@ -447,8 +446,8 @@ class AlgorithmScatter(Mediator, Plottable):
             )
         self.level_bars_figure.toolbar_location = None
         self.level_bars_figure.plot_width = plot_width
-        
-        ### Text input
+
+        # ## Text input
         button_width = 100
         self.query_input = TextInputComponent(
             text_input_kwargs=dict(
@@ -463,14 +462,14 @@ class AlgorithmScatter(Mediator, Plottable):
              )
         )
         self.query_button.set_mediator(self)
-        
+
         self.query_row = row(self.query_input.layout,
                              column(
                                  Div(text="", height=8),
                                  self.query_button.layout,
                              ))
-        
-        ### Layout
+
+        # ## Layout
         variable_selection = row(x_select, y_select,
                                  )
         segment_selection = row(
@@ -500,7 +499,7 @@ class AlgorithmScatter(Mediator, Plottable):
         return self
 
     def handle_query(self, text):
-        if text is not '':
+        if text != '':
             df = self.data_static.query(text).reset_index(drop=True)
         else:
             df = self.data_static
@@ -512,24 +511,24 @@ class AlgorithmScatter(Mediator, Plottable):
         counts = pd.crosstab(data[by], data[category])
         # algorithms = list(counts.index.values)
         counts_dict = counts.to_dict(orient='list')
-        
+
         levels = sorted(self.data[by].unique())
-        
+
         counts_dict[by] = list(filter(lambda x: x in counts.index, levels))
         return counts_dict
-    
+
     def subset_selected(self, indices):
         # should handle None and empty list
         if not indices:
             # might want to grab data from the scatter plot instead
-            data = self.data 
+            data = self.data
         else:
             data = self.data.reindex(indices)
         return data
-    
+
     get_level_counts = partialmethod(get_counts_by, 'algorithm', 'level')
     get_dataset_counts = partialmethod(get_counts_by, 'algorithm', 'dataset')
-         
+
     def app(self, doc):
         doc.add_root(self.layout)
 
@@ -558,6 +557,3 @@ if __name__ == "__main__":
     server.start()
     server.io_loop.add_callback(server.show, "/")
     server.io_loop.start()
-
-
-
