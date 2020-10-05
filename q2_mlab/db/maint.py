@@ -52,6 +52,10 @@ def add(engine: Engine, results: pd.DataFrame, parameters: dict,
     params_id = params.id
 
     # check if uuid is in table, and skip it if so
+
+    # TODO Once the code that pulls artifacts into the db and
+    # moves artifacts into an "inserted" directory is final, we
+    # may wish to change this to raise an error
     query = session.query(RegressionScore).filter_by(
         artifact_uuid=artifact_uuid
     )
