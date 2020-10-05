@@ -1,4 +1,3 @@
-import json
 import pandas as pd
 from sqlalchemy.engine import Engine
 from sqlalchemy import create_engine as sql_create_engine
@@ -51,6 +50,16 @@ def add(engine: Engine, results: pd.DataFrame, parameters: dict,
         session.add(params)
     session.flush()
     params_id = params.id
+
+    # check if uuid is in table, and skip it if so
+    query = session.query(RegressionScore).filter_by(
+        artifact_uuid=artifact_uuid
+    )
+    matching_artifact = query.first()
+    if matching_artifact is not None:
+        print(artifact_uuid + " exists")
+        session.close()
+        return
 
     # check if algorithm is valid
     valid_algorithms = RegressionTask.algorithms
