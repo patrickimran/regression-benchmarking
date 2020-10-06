@@ -36,10 +36,16 @@ from bokeh.layouts import column, row
 groups = ['parameters_id', 'dataset', 'target', 'level', 'algorithm']
 drop_cols = ['artifact_uuid', 'datetime', 'CV_IDX', 'id']
 
+target_map = {
+    'age_v2': 'age',
+    'BL_AGE': 'age',
+}
+
 
 def process_db_df(df):
     # remap values for consistency
     df['level'] = df['level'].replace('none', 'MG')
+    df['target'] = df['target'].map(target_map)
 
     group_stats = df.drop(
         drop_cols, axis=1
@@ -177,6 +183,7 @@ class AlgorithmScatter(Mediator, Plottable):
         self.line_segment_pairs = {
             'dataset': ['finrisk', 'sol'],
             'level': ['16S', 'MG'],
+            'target': ['age', 'bmi'],
         }
         self.scatter_tools = 'pan,wheel_zoom,box_select,lasso_select,'\
                              'reset,box_zoom,save'
@@ -235,7 +242,8 @@ class AlgorithmScatter(Mediator, Plottable):
             segment_source = find_segments(
                 df,
                 across=self.line_segment_variable,
-                groupby=['parameters_id', 'algorithm', 'level', 'dataset'],
+                groupby=['parameters_id', 'algorithm', 'level', 'dataset',
+                         'target'],
             )
             self.segment.segment.data_source.data = segment_source.to_dict(
                 orient='list',
@@ -262,7 +270,8 @@ class AlgorithmScatter(Mediator, Plottable):
             new_segment_data = find_segments(
                 self.data,
                 across=self.line_segment_variable,
-                groupby=['parameters_id', 'algorithm', 'level', 'dataset']
+                groupby=['parameters_id', 'algorithm', 'level', 'dataset',
+                         'target']
             )
             line_segment_ends = self.line_segment_pairs[new_segment_variable]
             self.segment.redraw(
