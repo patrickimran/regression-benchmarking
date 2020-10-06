@@ -58,8 +58,8 @@ def add(engine: Engine, results: pd.DataFrame, parameters: dict,
 
     # check if algorithm is valid, and of regression or classification
     # and assign Score to the corresponding Regression or Classification table
-    valid_algorithms = RegressionTask.algorithms.union(
-        ClassificationTask.algorithms
+    valid_algorithms = set(RegressionTask.algorithms).union(
+        set(ClassificationTask.algorithms)
     )
     if algorithm in RegressionTask.algorithms:
         Score = RegressionScore
@@ -80,7 +80,7 @@ def add(engine: Engine, results: pd.DataFrame, parameters: dict,
     )
     matching_artifact = query.first()
     if matching_artifact is not None:
-        print(artifact_uuid + " exists")
+        print(artifact_uuid + " already exists in table")
         session.close()
         return
 

@@ -2,7 +2,11 @@ import tempfile
 import unittest
 import pandas as pd
 from qiime2 import Artifact
-from q2_mlab.db.schema import Parameters, RegressionScore
+from q2_mlab.db.schema import (
+    Parameters,
+    RegressionScore,
+    ClassificationScore
+)
 from q2_mlab.db.maint import (
     create,
     create_engine,
@@ -37,7 +41,7 @@ class DBTestCase(unittest.TestCase):
         target = 'AGE'
         add(engine=engine, results=results, parameters=parameters,
             dataset=dataset, algorithm=algorithm, level=level, target=target,
-            artifact_uuid='some-uuid',
+            artifact_uuid='uuid-01',
             )
 
         param_df = pd.read_sql_table(Parameters.__tablename__, con=engine)
@@ -47,7 +51,7 @@ class DBTestCase(unittest.TestCase):
 
         add(engine=engine, results=results, parameters=parameters,
             dataset=dataset, algorithm=algorithm, level=level, target=target,
-            artifact_uuid='some-uuid',
+            artifact_uuid='uuid-02',
             )
         param_df = pd.read_sql_table(Parameters.__tablename__, con=engine)
         self.assertEqual(1, len(param_df))
@@ -56,7 +60,7 @@ class DBTestCase(unittest.TestCase):
 
         add(engine=engine, results=results, parameters={'activation': 'relu'},
             dataset=dataset, algorithm=algorithm, level=level, target=target,
-            artifact_uuid='some-uuid',
+            artifact_uuid='uuid-03',
             )
         param_df = pd.read_sql_table(Parameters.__tablename__, con=engine)
         self.assertEqual(2, len(param_df))
@@ -197,6 +201,86 @@ class DBTestCase(unittest.TestCase):
         self.assertEqual(1, len(param_df))
 
         fh.close()
+
+    def test_classification_schema(self):
+        engine = create(echo=False)
+
+        param_df = pd.read_sql_table(Parameters.__tablename__, con=engine)
+        self.assertEqual(0, len(param_df))
+
+        parameters = {'max_features_STRING': 'log2'}
+        results = pd.DataFrame([
+            {
+                'CV_IDX': 0, 'RUNTIME': 2.3, 'PROB_CLASS_0': 0.502,
+                'PROB_CLASS_1': 0.498, 'AUPRC': 0.3, 'AUROC': 0.3, 'F1': 0.0
+            },
+            {
+                'CV_IDX': 1, 'RUNTIME': 2.9, 'PROB_CLASS_0': 0.603,
+                'PROB_CLASS_1': 0.397, 'AUPRC': 0.4, 'AUROC': 0.5, 'F1': 0.0
+            },
+        ])
+        dataset = 'FINRISK'
+        algorithm = 'RandomForestClassifier'
+        level = 'MG'
+        target = 'AGE'
+        add(engine=engine, results=results, parameters=parameters,
+            dataset=dataset, algorithm=algorithm, level=level, target=target,
+            artifact_uuid='some-unique-uuid',
+            )
+
+        param_df = pd.read_sql_table(
+            Parameters.__tablename__, con=engine
+        )
+        self.assertEqual(1, len(param_df))
+        score_df = pd.read_sql_table(
+            ClassificationScore.__tablename__, con=engine
+        )
+        self.assertEqual(2, len(score_df))
+
+    def test_add_artifact_thrice(self):
+        engine = create(echo=False)
+
+        parameters = {'max_features_STRING': 'log2'}
+        results = pd.DataFrame([
+            {
+                'CV_IDX': 0, 'RUNTIME': 2.3, 'PROB_CLASS_0': 0.502,
+                'PROB_CLASS_1': 0.498, 'AUPRC': 0.3, 'AUROC': 0.3, 'F1': 0.0
+            },
+            {
+                'CV_IDX': 1, 'RUNTIME': 2.9, 'PROB_CLASS_0': 0.603,
+                'PROB_CLASS_1': 0.397, 'AUPRC': 0.4, 'AUROC': 0.5, 'F1': 0.0
+            },
+        ])
+        dataset = 'FINRISK'
+        algorithm = 'RandomForestClassifier'
+        level = 'MG'
+        target = 'AGE'
+        for _ in range(3):
+            add(engine=engine, results=results, parameters=parameters,
+                dataset=dataset, algorithm=algorithm, level=level,
+                target=target, artifact_uuid='repeated-uuid',
+                )
+
+        param_df = pd.read_sql_table(Parameters.__tablename__, con=engine)
+        self.assertEqual(1, len(param_df))
+        # Should only be one, repeated insert attempts ignored
+        score_df = pd.read_sql_table(
+            ClassificationScore.__tablename__, con=engine
+        )
+        self.assertEqual(2, len(score_df))
+
+        add(
+            engine=engine, results=results, parameters=parameters,
+            dataset=dataset, algorithm=algorithm, level=level, target=target,
+            artifact_uuid='totally-new-never-seen-before-uuid',
+        )
+        param_df = pd.read_sql_table(Parameters.__tablename__, con=engine)
+        self.assertEqual(1, len(param_df))
+        # Should only be one, repeated insert attempts ignored
+        score_df = pd.read_sql_table(
+            ClassificationScore.__tablename__, con=engine
+        )
+        self.assertEqual(4, len(score_df))
 
 
 if __name__ == '__main__':
