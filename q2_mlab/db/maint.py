@@ -4,9 +4,14 @@ from sqlalchemy import create_engine as sql_create_engine
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime
 from qiime2 import Artifact
-from q2_mlab.db.schema import RegressionScore, Parameters, Base
+from q2_mlab.db.schema import (
+    RegressionScore,
+    ClassificationScore,
+    Parameters,
+    Base,
+)
 from q2_mlab.db.mapping import remap_parameters
-from q2_mlab.learningtask import RegressionTask
+from q2_mlab.learningtask import RegressionTask, ClassificationTask
 from typing import Optional, Callable
 
 
@@ -51,12 +56,26 @@ def add(engine: Engine, results: pd.DataFrame, parameters: dict,
     session.flush()
     params_id = params.id
 
-    # check if uuid is in table, and skip it if so
+    # check if algorithm is valid, and of regression or classification
+    # and assign Score to the corresponding Regression or Classification table
+    valid_algorithms = RegressionTask.algorithms.union(
+        ClassificationTask.algorithms
+    )
+    if algorithm in RegressionTask.algorithms:
+        Score = RegressionScore
+    elif algorithm in ClassificationTask.algorithms:
+        Score = ClassificationScore
+    else:
+        raise ValueError(
+            f"Invalid choice '{algorithm}' for algorithm."
+            f"Valid choices: {valid_algorithms}."
+        )
 
-    # TODO Once the code that pulls artifacts into the db and
+    # check if uuid is in table, and skip it if so
+    # TODO once the code that pulls artifacts into the db and
     # moves artifacts into an "inserted" directory is final, we
     # may wish to change this to raise an error
-    query = session.query(RegressionScore).filter_by(
+    query = session.query(Score).filter_by(
         artifact_uuid=artifact_uuid
     )
     matching_artifact = query.first()
@@ -65,24 +84,18 @@ def add(engine: Engine, results: pd.DataFrame, parameters: dict,
         session.close()
         return
 
-    # check if algorithm is valid
-    valid_algorithms = RegressionTask.algorithms
-    if algorithm not in valid_algorithms:
-        raise ValueError(f"Invalid choice '{algorithm}' for algorithm."
-                         f"Valid choices: {valid_algorithms}."
-                         )
-
     time = datetime.now()
     for entry in results.iterrows():
-        score = RegressionScore(datetime=time,
-                                parameters_id=params_id,
-                                dataset=dataset,
-                                target=target,
-                                level=level,
-                                algorithm=algorithm,
-                                artifact_uuid=artifact_uuid,
-                                **entry[1],
-                                )
+        score = Score(
+            datetime=time,
+            parameters_id=params_id,
+            dataset=dataset,
+            target=target,
+            level=level,
+            algorithm=algorithm,
+            artifact_uuid=artifact_uuid,
+            **entry[1],
+        )
         session.add(score)
 
     session.commit()
