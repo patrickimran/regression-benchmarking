@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from datetime import datetime
 from qiime2 import Artifact
 from q2_mlab.db.schema import (
-made    Score,
+    Score,
     RegressionScore,
     ClassificationScore,
     Parameters,
