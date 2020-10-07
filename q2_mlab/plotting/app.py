@@ -39,6 +39,8 @@ drop_cols = ['artifact_uuid', 'datetime', 'CV_IDX', 'id']
 target_map = {
     'age_v2': 'age',
     'BL_AGE': 'age',
+    'bmi_v2': 'bmi',
+    'BMI': 'bmi',
 }
 
 
@@ -168,7 +170,7 @@ class AlgorithmScatter(Mediator, Plottable):
         self.data = None
         self.scatter = None
         if cmap is None:
-            self.cmap = Category20
+            self.cmap = Set3
         else:
             self.cmap = cmap
         self.line_segment_variable = DEFAULTS['segment_variable']
@@ -199,6 +201,9 @@ class AlgorithmScatter(Mediator, Plottable):
         self.level_bars = None
         self.level_bars_source = None
         self.level_bars_figure = None
+        self.target_bars = None
+        self.target_bars_source = None
+        self.target_bars_figure = None
         self.query_button = None
         self.query_input = None
         self.query_row = None
@@ -232,6 +237,9 @@ class AlgorithmScatter(Mediator, Plottable):
             self.level_bars_source.data = self.get_level_counts(
                 indices=selected_indices,
             )
+            self.target_bars_source.data = self.get_target_counts(
+                indices=selected_indices,
+            )
         if (event_name == 'button-click') and \
                 (component is self.query_button):
             df = self.handle_query(self.query_input.text_input.value)
@@ -254,6 +262,9 @@ class AlgorithmScatter(Mediator, Plottable):
                 indices=selected_indices,
             )
             self.level_bars_source.data = self.get_level_counts(
+                indices=selected_indices,
+            )
+            self.target_bars_source.data = self.get_target_counts(
                 indices=selected_indices,
             )
         if (event_name == 'checkbox-change') and \
@@ -304,6 +315,7 @@ class AlgorithmScatter(Mediator, Plottable):
         algorithms = sorted(df['algorithm'].unique())
         levels = sorted(df['level'].unique())
         datasets = sorted(df['dataset'].unique())
+        targets = sorted(df['target'].unique())
         plot_width = 600
 
         categorical_variables = ['parameters_id', 'target', 'algorithm',
@@ -456,6 +468,19 @@ class AlgorithmScatter(Mediator, Plottable):
         self.level_bars_figure.toolbar_location = None
         self.level_bars_figure.plot_width = plot_width
 
+        # ## Target Stacked Hbars
+        data_getter = self.get_target_counts
+        self.target_bars_source = ColumnDataSource(data_getter())
+        self.target_bars_figure = figure(y_range=targets, plot_height=100)
+        self.target_bars = self.target_bars_figure.hbar_stack(
+            algorithms, y='target',
+            height=0.9,
+            color=color_scheme,
+            source=self.target_bars_source,
+            )
+        self.target_bars_figure.toolbar_location = None
+        self.target_bars_figure.plot_width = plot_width
+
         # ## Text input
         button_width = 100
         self.query_input = TextInputComponent(
@@ -499,6 +524,7 @@ class AlgorithmScatter(Mediator, Plottable):
                     column(
                         self.dataset_bars_figure,
                         self.level_bars_figure,
+                        self.target_bars_figure,
                         legend_fig,
                     ),
                 ),
@@ -537,6 +563,7 @@ class AlgorithmScatter(Mediator, Plottable):
 
     get_level_counts = partialmethod(get_counts_by, 'algorithm', 'level')
     get_dataset_counts = partialmethod(get_counts_by, 'algorithm', 'dataset')
+    get_target_counts = partialmethod(get_counts_by, 'algorithm', 'target')
 
     def app(self, doc):
         doc.add_root(self.layout)
