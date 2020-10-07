@@ -5,6 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from datetime import datetime
 from qiime2 import Artifact
 from q2_mlab.db.schema import (
+made    Score,
     RegressionScore,
     ClassificationScore,
     Parameters,
@@ -38,6 +39,42 @@ def create(db_file: Optional[str] = None, echo=True) -> Engine:
     return engine
 
 
+def get_table_from_algorithm(algorithm: str) -> Score:
+    # check if algorithm is valid, and of regression or classification
+    # and assign Table to the corresponding Regression or Classification table
+    valid_algorithms = set(RegressionTask.algorithms).union(
+        set(ClassificationTask.algorithms)
+    )
+    if algorithm in RegressionTask.algorithms:
+        Table = RegressionScore
+    elif algorithm in ClassificationTask.algorithms:
+        Table = ClassificationScore
+    else:
+        raise ValueError(
+            f"Invalid choice '{algorithm}' for algorithm."
+            f"Valid choices: {valid_algorithms}."
+        )
+    return Table
+
+
+def uuid_is_unique(engine: Engine, artifact_uuid: str, algorithm: str) -> bool:
+
+    Session = sessionmaker(bind=engine)
+    session = Session()
+
+    Table = get_table_from_algorithm(algorithm)
+
+    query = session.query(Table).filter_by(
+        artifact_uuid=artifact_uuid
+    )
+    matching_artifact = query.first()
+    session.close()
+    if matching_artifact is None:
+        return True
+    else:
+        return False
+
+
 def add(engine: Engine, results: pd.DataFrame, parameters: dict,
         dataset: str, target: str, level: str, algorithm: str,
         artifact_uuid: str,
@@ -56,37 +93,11 @@ def add(engine: Engine, results: pd.DataFrame, parameters: dict,
     session.flush()
     params_id = params.id
 
-    # check if algorithm is valid, and of regression or classification
-    # and assign Score to the corresponding Regression or Classification table
-    valid_algorithms = set(RegressionTask.algorithms).union(
-        set(ClassificationTask.algorithms)
-    )
-    if algorithm in RegressionTask.algorithms:
-        Score = RegressionScore
-    elif algorithm in ClassificationTask.algorithms:
-        Score = ClassificationScore
-    else:
-        raise ValueError(
-            f"Invalid choice '{algorithm}' for algorithm."
-            f"Valid choices: {valid_algorithms}."
-        )
-
-    # check if uuid is in table, and skip it if so
-    # TODO once the code that pulls artifacts into the db and
-    # moves artifacts into an "inserted" directory is final, we
-    # may wish to change this to raise an error
-    query = session.query(Score).filter_by(
-        artifact_uuid=artifact_uuid
-    )
-    matching_artifact = query.first()
-    if matching_artifact is not None:
-        print(artifact_uuid + " already exists in table")
-        session.close()
-        return
+    Table = get_table_from_algorithm(algorithm)
 
     time = datetime.now()
     for entry in results.iterrows():
-        score = Score(
+        score = Table(
             datetime=time,
             parameters_id=params_id,
             dataset=dataset,
@@ -109,13 +120,24 @@ def add_from_qza(artifact: Artifact,
                  algorithm: str,
                  db_file: Optional[str] = None,
                  echo: bool = True,
+                 allow_duplicate_uuids: bool = True,
                  engine_creator: Callable = create_engine,
-                 ):
+                 ) -> bool:
 
     engine = engine_creator(db_file, echo=echo)
 
     results = artifact.view(pd.DataFrame)
     artifact_uuid = str(artifact.uuid)
+
+    if not allow_duplicate_uuids:
+        # check if this uuid is in the table
+        uuid_unique = uuid_is_unique(engine, artifact_uuid, algorithm)
+        if not uuid_unique:
+            raise ValueError(
+                f"Supplied artifact {artifact_uuid} is already "
+                f"contained in the table."
+            )
+
     # perform filtering on results (single entry per cross validation)
     results.drop(DROP_COLS, axis=1, inplace=True)
     results.drop_duplicates(inplace=True)
