@@ -3,6 +3,7 @@ import pandas as pd
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 import sqlite3
+import click
 
 from q2_mlab.db.schema import RegressionScore
 from q2_mlab.plotting.components import (
@@ -32,6 +33,7 @@ from bokeh.palettes import (
     Set3,
 )
 from bokeh.layouts import column, row
+from bokeh.server.server import Server
 
 groups = ['parameters_id', 'dataset', 'target', 'level', 'algorithm']
 drop_cols = ['artifact_uuid', 'datetime', 'CV_IDX', 'id']
@@ -170,7 +172,7 @@ class AlgorithmScatter(Mediator, Plottable):
         self.data = None
         self.scatter = None
         if cmap is None:
-            self.cmap = Set3
+            self.cmap = Category20
         else:
             self.cmap = cmap
         self.line_segment_variable = DEFAULTS['segment_variable']
@@ -569,26 +571,42 @@ class AlgorithmScatter(Mediator, Plottable):
         doc.add_root(self.layout)
 
 
-if __name__ == "__main__":
-    from bokeh.server.server import Server
-    import sys
-    db_file = sys.argv[1]
+@click.group('mlab-plotting')
+def mlab_plotting():
+    pass
 
+
+@mlab_plotting.command()
+@click.option(
+    '--db',
+    help='Path to SQLite database file.',
+    type=click.Path(exists=False),
+)
+@click.option(
+    '--color-scheme',
+    help='Color scheme to plot with',
+    type=click.Choice(
+        list(palettes.keys()),
+    ),
+    default=DEFAULTS['cmap'],
+)
+def metric_scatter(db, color_scheme):
+    run_app(db, color_scheme)
+
+
+def run_app(db, color_scheme):
     # thanks https://github.com/sqlalchemy/sqlalchemy/issues/4863
     def connect():
-        return sqlite3.connect(f"file:{db_file}?mode=ro", uri=True)
+        return sqlite3.connect(f"file:{db}?mode=ro", uri=True)
 
     engine = create_engine("sqlite://", creator=connect)
-
     Session = sessionmaker(bind=engine)
     session = Session()
-
     bkapp = AlgorithmScatter(
         DEFAULTS['x'], DEFAULTS['y'],
         engine=engine,
-        cmap=palettes[DEFAULTS['cmap']],
+        cmap=palettes.get(color_scheme),
     ).plot().app
-
     server = Server({'/': bkapp})
     server.start()
     server.io_loop.add_callback(server.show, "/")
