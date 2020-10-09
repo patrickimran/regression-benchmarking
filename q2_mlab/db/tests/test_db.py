@@ -279,18 +279,20 @@ class DBTestCase(unittest.TestCase):
                       'n_estimators': 100, 'n_jobs': -1, 'random_state': 2020,
                       }
 
-        for _ in range(3):
-            engine = add_from_qza(
-                imported_artifact,
-                parameters,
-                dataset,
-                target,
-                level, algorithm,
-                db_file=db_file,
-                engine_creator=create_engine,
-                echo=False,
-                allow_duplicate_uuids=False,
-            )
+        with self.assertRaises(ValueError):
+            for _ in range(3):
+                engine = add_from_qza(
+                    imported_artifact,
+                    parameters,
+                    dataset,
+                    target,
+                    level, algorithm,
+                    db_file=db_file,
+                    engine_creator=create,
+                    echo=False,
+                    allow_duplicate_uuids=False,
+                )
+
         results = pd.read_sql_table(
             RegressionScore.__tablename__, con=engine
         )
