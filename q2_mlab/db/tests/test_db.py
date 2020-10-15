@@ -280,7 +280,7 @@ class DBTestCase(unittest.TestCase):
                       }
 
         with self.assertRaises(ValueError):
-            for _ in range(3):
+            for _ in range(2):
                 engine = add_from_qza(
                     imported_artifact,
                     parameters,

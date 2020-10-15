@@ -122,7 +122,7 @@ def add_from_qza(artifact: Artifact,
                  echo: bool = True,
                  allow_duplicate_uuids: bool = True,
                  engine_creator: Callable = create_engine,
-                 ) -> bool:
+                 ) -> Engine:
 
     engine = engine_creator(db_file, echo=echo)
 
