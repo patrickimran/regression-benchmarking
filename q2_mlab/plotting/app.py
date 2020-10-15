@@ -600,8 +600,6 @@ def run_app(db, color_scheme):
         return sqlite3.connect(f"file:{db}?mode=ro", uri=True)
 
     engine = create_engine("sqlite://", creator=connect)
-    Session = sessionmaker(bind=engine)
-    session = Session()
     bkapp = AlgorithmScatter(
         DEFAULTS['x'], DEFAULTS['y'],
         engine=engine,
