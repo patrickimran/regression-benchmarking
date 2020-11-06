@@ -68,8 +68,8 @@ head -n $offset $input | tail -n $chunk_size > ${SUBSETLIST}
 FORCE={{ FORCE_OVERWRITE }}
 while IFS=$'\t' read -r idx params
 do 
-    RESULTS={{ RESULTS_DIR }}/${idx}_chunk_${PBS_ARRAYID}
-    INSERTED_RESULTS={{ RESULTS_DIR }}/inserted/${idx}_chunk_${PBS_ARRAYID}
+    RESULTS={{ RESULTS_DIR }}/${idx}_chunk_${PBS_ARRAYID}.qza
+    INSERTED_RESULTS={{ RESULTS_DIR }}/inserted/${idx}_chunk_${PBS_ARRAYID}.qza
     RESULTS_EXIST=false
     
     # Check if results exist
