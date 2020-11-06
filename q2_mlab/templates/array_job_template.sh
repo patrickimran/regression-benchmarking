@@ -69,8 +69,17 @@ FORCE={{ FORCE_OVERWRITE }}
 while IFS=$'\t' read -r idx params
 do 
     RESULTS={{ RESULTS_DIR }}/${idx}_chunk_${PBS_ARRAYID}
-    if [[ -f $RESULTS.qza && ${FORCE} = false ]]
+    INSERTED_RESULTS={{ RESULTS_DIR }}/inserted/${idx}_chunk_${PBS_ARRAYID}
+    RESULTS_EXIST=false
+    
+    # Check if results exist
+    if [[ -f ${RESULTS} || -f ${INSERTED_RESULTS} ]]
     then
+        RESULTS_EXIST=true
+    fi
+
+    # Only skip execution if results exist and we aren't forcing it.
+    if [[ ${RESULTS_EXIST} = true && ${FORCE} = false ]]
         echo $RESULTS already exists, execution skipped
     else
         qiime mlab unit-benchmark --i-table {{ TABLE_FP }} \
