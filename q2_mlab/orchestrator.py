@@ -8,71 +8,23 @@ from sklearn.model_selection import ParameterGrid
 from jinja2 import Environment, FileSystemLoader
 from q2_mlab import RegressionTask, ClassificationTask, ParameterGrids
 
-
-@click.command()
-@click.argument('dataset')
-@click.argument('preparation')
-@click.argument('target')
-@click.argument('algorithm')
-@click.option(
-    '--base_dir', '-b',
-    help="Directory to search for datasets in",
-    required=True
-)
-@click.option(
-    '--repeats', '-r',
-    default=3,
-    help="Number of CV repeats",
-)
-@click.option(
-    '--ppn',
-    default=1,
-    help="Processors per node for job script",
-)
-@click.option(
-    '--memory',
-    default=32,
-    help="GB of memory for job script",
-)
-@click.option(
-    '--wall',
-    default=50,
-    help="Walltime in hours for job script",
-)
-@click.option(
-    '--chunk_size',
-    default=100,
-    help="Number of params to run in one job for job script",
-)
-@click.option(
-    '--randomize/--no-randomize',
-    default=True,
-    help="Randomly shuffle the order of the hyperparameter list",
-)
-@click.option(
-    '--reduced/--no-reduced',
-    default=False,
-    help="If a reduced parameter grid is available, run the reduced grid.",
-)
-@click.option(
-    '--force/--no-force',
-    default=False,
-    help="Overwrite existing results.",
-)
-def cli(
+def _orchestrate(
     dataset,
     preparation,
     target,
     algorithm,
-    repeats,
     base_dir,
-    ppn,
-    memory,
-    wall,
-    chunk_size,
-    randomize,
-    reduced,
-    force
+    dataset_path = None,
+    metadata_path = None,
+    repeats=3,
+    ppn=1,
+    memory=32,
+    wall=50,
+    chunk_size=100,
+    randomize=True,
+    reduced=False,
+    force=False,
+    dry=False,
 ):
     classifiers = set(RegressionTask.algorithms.keys())
     regressors = set(ClassificationTask.algorithms.keys())
@@ -112,18 +64,25 @@ def cli(
     JOB_NAME = "_".join([dataset, preparation, target, ALGORITHM])
     FORCE = str(force).lower()
 
-    TABLE_FP = path.join(
-        base_dir, dataset, preparation, target, "filtered_rarefied_table.qza"
-    )
+    # Use user-specified path, otherwise assume path from Preprocessing
+    if dataset_path:
+        TABLE_FP = dataset_path
+    else:
+        TABLE_FP = path.join(
+            base_dir, dataset, preparation, target, "filtered_rarefied_table.qza"
+        )
     if not path.exists(TABLE_FP):
         raise FileNotFoundError(
             "Table was not found at the expected path: "
             + TABLE_FP
         )
 
-    METADATA_FP = path.join(
-        base_dir, dataset, preparation, target, "filtered_metadata.qza"
-    )
+    if metadata_path:
+        METADATA_FP = dataset_path
+    else:
+        METADATA_FP = path.join(
+            base_dir, dataset, preparation, target, "filtered_metadata.qza"
+        )
     if not path.exists(METADATA_FP):
         raise FileNotFoundError(
             "Metadata was not found at the expected path: "
@@ -194,23 +153,116 @@ def cli(
         "_".join([preparation, target, ALGORITHM]) + "_info.txt"
     )
 
-    print(output_script)
-    # print(output_from_job_template)
-    print("##########################")
-    print("Number of parameters: " + str(len(params_list)))
-    print(f"Max number of jobs with chunk size {CHUNK_SIZE}: " + str(N_CHUNKS))
-    with open(info_doc, "w") as fh:
-            fh.write(output_from_info_template)
-    print("Saved info to: " + info_doc)
-    with open(PARAMS_FP, 'w') as fh:
-        i = 1
-        for p in params_list:
-            fh.write(str(i).zfill(4)+"\t"+p+"\n")
-            i += 1
-    print("Saved params to: " + PARAMS_FP)
-    with open(output_script, "w") as fh:
-        fh.write(output_from_job_template)
-    print("Saved to: " + output_script)
+    if dry:
+        print(output_from_job_template)
+        print("##########################")
+        print("Number of parameters: " + str(len(params_list)))
+        print(f"Max number of jobs with chunk size {CHUNK_SIZE}: " + str(N_CHUNKS))
+        print("Will save info to: " + info_doc)
+        print("Will save params to: " + PARAMS_FP)
+        print("Will save script to: " + output_script)
+
+    else:
+
+        with open(info_doc, "w") as fh:
+                fh.write(output_from_info_template)
+        with open(PARAMS_FP, 'w') as fh:
+            i = 1
+            for p in params_list:
+                fh.write(str(i).zfill(4)+"\t"+p+"\n")
+                i += 1
+        with open(output_script, "w") as fh:
+            fh.write(output_from_job_template)
+
+
+@click.command()
+@click.argument('dataset')
+@click.argument('preparation')
+@click.argument('target')
+@click.argument('algorithm')
+@click.option(
+    '--base_dir', '-b',
+    help="Directory to search for datasets in",
+    required=True
+)
+@click.option(
+    '--repeats', '-r',
+    default=3,
+    help="Number of CV repeats",
+)
+@click.option(
+    '--ppn',
+    default=1,
+    help="Processors per node for job script",
+)
+@click.option(
+    '--memory',
+    default=32,
+    help="GB of memory for job script",
+)
+@click.option(
+    '--wall',
+    default=50,
+    help="Walltime in hours for job script",
+)
+@click.option(
+    '--chunk_size',
+    default=100,
+    help="Number of params to run in one job for job script",
+)
+@click.option(
+    '--randomize/--no-randomize',
+    default=True,
+    help="Randomly shuffle the order of the hyperparameter list",
+)
+@click.option(
+    '--reduced/--no-reduced',
+    default=False,
+    help="If a reduced parameter grid is available, run the reduced grid.",
+)
+@click.option(
+    '--force/--no-force',
+    default=False,
+    help="Overwrite existing results.",
+)
+@click.option(
+    '--dry/--no-force',
+    default=False,
+    help="Perform a dry run without writing files.",
+)
+def cli(
+    dataset,
+    preparation,
+    target,
+    algorithm,
+    repeats,
+    base_dir,
+    ppn,
+    memory,
+    wall,
+    chunk_size,
+    randomize,
+    reduced,
+    force,
+    dry,
+):
+    _orchestrate(
+        dataset,
+        preparation,
+        target,
+        algorithm,
+        repeats,
+        base_dir,
+        ppn,
+        memory,
+        wall,
+        chunk_size,
+        randomize,
+        reduced,
+        force,
+        dry
+    )
+    
 
 if __name__ == "__main__":
     cli()
