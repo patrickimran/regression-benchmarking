@@ -78,7 +78,7 @@ def _orchestrate(
         )
 
     if metadata_path:
-        METADATA_FP = dataset_path
+        METADATA_FP = metadata_path
     else:
         METADATA_FP = path.join(
             base_dir, dataset, preparation, target, "filtered_metadata.qza"
