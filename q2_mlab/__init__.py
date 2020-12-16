@@ -23,7 +23,7 @@ __all__ = [
     "preprocess",
     "unit_benchmark",
     "_unit_benchmark",
-    "_orchestrate"
+    "_orchestrate",
     "ResultsDirectoryFormat",
     "ResultsFormat",
     "Target",

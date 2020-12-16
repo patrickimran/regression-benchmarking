@@ -161,9 +161,7 @@ def _orchestrate(
         print("Will save info to: " + info_doc)
         print("Will save params to: " + PARAMS_FP)
         print("Will save script to: " + output_script)
-
     else:
-
         with open(info_doc, "w") as fh:
                 fh.write(output_from_info_template)
         with open(PARAMS_FP, 'w') as fh:
@@ -173,6 +171,8 @@ def _orchestrate(
                 i += 1
         with open(output_script, "w") as fh:
             fh.write(output_from_job_template)
+    
+    return output_script, PARAMS_FP, info_doc
 
 
 @click.command()
