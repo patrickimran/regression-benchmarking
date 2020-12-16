@@ -49,6 +49,12 @@ max_size="$(wc -l <${input})"
 max_n_chunks=$((($max_size/$chunk_size)+1))
 offset=$(($chunk_size * $PBS_ARRAYID))
 
+# If PBS_ARRAYID is > max_n_chunks, then exit
+if [ ${PBS_ARRAYID} -gt ${max_n_chunks} ]
+then
+    exit 0
+fi
+
 # If we are on the last possible chunk, set its size
 # to the number of remaining params
 if [ ${PBS_ARRAYID} = ${max_n_chunks} ]
