@@ -161,8 +161,8 @@ class OrchestratorTests(unittest.TestCase):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
-        self.assertEqual(completed_process.returncode, 1)
         print(completed_process)
+        self.assertEqual(completed_process.returncode, 1)
 
         os.environ["PBS_ARRAYID"] = "6"
         completed_process = subprocess.run(
@@ -171,5 +171,5 @@ class OrchestratorTests(unittest.TestCase):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
-        self.assertEqual(completed_process.returncode, 1)
         print(completed_process)
+        self.assertEqual(completed_process.returncode, 1)
