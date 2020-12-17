@@ -50,6 +50,7 @@ class OrchestratorTests(unittest.TestCase):
             with open(self.test_script, "w") as out:
                 for line in keeplines:
                     out.write(line)
+                out.write("\n")
         subprocess.run(["chmod", "755", self.test_script])
 
     def tearDown(self):
