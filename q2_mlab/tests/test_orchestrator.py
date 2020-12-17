@@ -164,7 +164,6 @@ class OrchestratorTests(unittest.TestCase):
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
             )
-            print(completed_process)
 
         with self.assertRaises(subprocess.TimeoutExpired):
             os.environ["PBS_ARRAYID"] = "6"
@@ -175,4 +174,3 @@ class OrchestratorTests(unittest.TestCase):
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
             )
-            print(completed_process)
