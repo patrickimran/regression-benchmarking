@@ -86,6 +86,7 @@ do
 
     # Only skip execution if results exist and we aren't forcing it.
     if [[ ${RESULTS_EXIST} = true && ${FORCE} = false ]]
+    then
         echo $RESULTS already exists, execution skipped
     else
         qiime mlab unit-benchmark --i-table {{ TABLE_FP }} \
