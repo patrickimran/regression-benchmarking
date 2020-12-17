@@ -1,7 +1,7 @@
 import pandas as pd
 from sqlalchemy.engine import Engine
 from sqlalchemy import create_engine as sql_create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker as sql_sessionmaker
 from datetime import datetime
 from qiime2 import Artifact
 from q2_mlab.db.schema import (
@@ -39,6 +39,23 @@ def create(db_file: Optional[str] = None, echo=True) -> Engine:
     return engine
 
 
+def sessionmaker(db_file=None, engine=None, echo=False):
+    if db_file is not None and engine is None:
+        engine = create_engine(db_file, echo=echo)
+    elif engine is not None and db_file is None:
+        pass
+    elif engine is not None and db_file is not None:
+        raise ValueError(f"Parameters 'db_file' and 'engine' are mutually "
+                         f"exclusive. Got: db_file={db_file}, engine={engine}")
+    else:
+        raise ValueError(f"Either 'db_file' or 'engine' is required for "
+                         f"sessionmaker.")
+
+    # otherwise assume it is a proper engine
+    Session = sql_sessionmaker(bind=engine)
+    return Session
+
+
 def get_table_from_algorithm(algorithm: str) -> Score:
     # check if algorithm is valid, and of regression or classification
     # and assign Table to the corresponding Regression or Classification table
@@ -59,7 +76,7 @@ def get_table_from_algorithm(algorithm: str) -> Score:
 
 def uuid_is_unique(engine: Engine, artifact_uuid: str, algorithm: str) -> bool:
 
-    Session = sessionmaker(bind=engine)
+    Session = sessionmaker(engine=engine)
     session = Session()
 
     Table = get_table_from_algorithm(algorithm)
@@ -79,7 +96,7 @@ def add(engine: Engine, results: pd.DataFrame, parameters: dict,
         dataset: str, target: str, level: str, algorithm: str,
         artifact_uuid: str,
         ) -> None:
-    Session = sessionmaker(bind=engine)
+    Session = sessionmaker(engine=engine)
     session = Session()
 
     # check if parameters exists in db
