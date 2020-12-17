@@ -8,7 +8,7 @@ from sklearn.model_selection import ParameterGrid
 from jinja2 import Environment, FileSystemLoader
 from q2_mlab import RegressionTask, ClassificationTask, ParameterGrids
 
-def _orchestrate(
+def orchestrate_hyperparameter_search(
     dataset,
     preparation,
     target,
@@ -157,18 +157,16 @@ def _orchestrate(
         print(output_from_job_template)
         print("##########################")
         print("Number of parameters: " + str(len(params_list)))
-        print(f"Max number of jobs with chunk size {CHUNK_SIZE}: " + str(N_CHUNKS))
-        print("Will save info to: " + info_doc)
-        print("Will save params to: " + PARAMS_FP)
-        print("Will save script to: " + output_script)
+        print(f"Max number of jobs with chunk size {CHUNK_SIZE}: {N_CHUNKS}")
+        print(f"Will save info to: {info_doc}")
+        print(f"Will save params to: {PARAMS_FP}")
+        print(f"Will save script to: {output_script}")
     else:
         with open(info_doc, "w") as fh:
                 fh.write(output_from_info_template)
         with open(PARAMS_FP, 'w') as fh:
-            i = 1
-            for p in params_list:
-                fh.write(str(i).zfill(4)+"\t"+p+"\n")
-                i += 1
+            for i, p in enumerate(params_list, 1):
+                fh.write(str(i).zfill(8)+"\t"+p+"\n")
         with open(output_script, "w") as fh:
             fh.write(output_from_job_template)
     
@@ -226,7 +224,7 @@ def _orchestrate(
     help="Overwrite existing results.",
 )
 @click.option(
-    '--dry/--no-force',
+    '--dry/--no-dry',
     default=False,
     help="Perform a dry run without writing files.",
 )
