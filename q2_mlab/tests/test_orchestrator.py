@@ -136,43 +136,44 @@ class OrchestratorTests(unittest.TestCase):
         completed_process = subprocess.run(
             f"{self.test_script}",
             shell=True,
-            timeout=1,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         )
         self.assertEqual(completed_process.returncode, 0)
+        print(completed_process)
 
         os.environ["PBS_ARRAYID"] = "50"
         completed_process = subprocess.run(
             f"{self.test_script}",
             shell=True,
-            timeout=1,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         )
         self.assertEqual(completed_process.returncode, 0)
+        print(completed_process)
 
     def testValidJobArrayID(self):
-        # Test valid array ids
-        # These should time out
-        with self.assertRaises(subprocess.TimeoutExpired):
-            os.environ["PBS_ARRAYID"] = "5"
-            completed_process = subprocess.run(
-                f"{self.test_script}",
-                shell=True,
-                timeout=2,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-            )
-            print(completed_process)
+        # Since the metadata provided is not SampleData[Target], 
+        # we expect q2_mlab to throw an error with return code 1.
+        # The downside to this over checking for a timeout is that waiting
+        # for 20 (n_chunks) errors takes time.
 
-        with self.assertRaises(subprocess.TimeoutExpired):
-            os.environ["PBS_ARRAYID"] = "6"
-            completed_process = subprocess.run(
-                f"{self.test_script}",
-                shell=True,
-                timeout=2,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-            )
-            print(completed_process)
+        os.environ["PBS_ARRAYID"] = "5"
+        completed_process = subprocess.run(
+            f"{self.test_script}",
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        self.assertEqual(completed_process.returncode, 1)
+        print(completed_process)
+
+        os.environ["PBS_ARRAYID"] = "6"
+        completed_process = subprocess.run(
+            f"{self.test_script}",
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        self.assertEqual(completed_process.returncode, 1)
+        print(completed_process)
