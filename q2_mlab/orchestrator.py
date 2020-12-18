@@ -117,7 +117,7 @@ def orchestrate_hyperparameter_search(
         )
     if not path.exists(METADATA_FP):
         raise FileNotFoundError(
-            "Metadata was not found at the expected path: " + TABLE_FP
+            "Metadata was not found at the expected path: " + METADATA_FP
         )
 
     RESULTS_DIR = path.join(base_dir, dataset, preparation, target, ALGORITHM)
