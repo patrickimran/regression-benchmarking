@@ -15,8 +15,6 @@ def orchestrate_hyperparameter_search(
     target,
     algorithm,
     base_dir,
-    dataset_path=None,
-    metadata_path=None,
     repeats=3,
     ppn=1,
     memory=32,
@@ -26,6 +24,8 @@ def orchestrate_hyperparameter_search(
     reduced=False,
     force=False,
     dry=False,
+    dataset_path=None,
+    metadata_path=None,
 ):
     """
     Creates files and file structures necessary for a hyperparameter search
@@ -274,20 +274,20 @@ def cli(
     dry,
 ):
     orchestrate_hyperparameter_search(
-        dataset,
-        preparation,
-        target,
-        algorithm,
-        base_dir,
-        repeats,
-        ppn,
-        memory,
-        wall,
-        chunk_size,
-        randomize,
-        reduced,
-        force,
-        dry,
+        dataset=dataset,
+        preparation=preparation,
+        target=target,
+        algorithm=algorithm,
+        base_dir=base_dir,
+        repeats=repeats,
+        ppn=ppn,
+        memory=memory,
+        wall=wall,
+        chunk_size=chunk_size,
+        randomize=randomize,
+        reduced=reduced,
+        force=force,
+        dry=dry,
     )
 
 
