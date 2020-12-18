@@ -4,6 +4,9 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 import sqlite3
 import click
+import json
+import pkg_resources
+from itertools import combinations
 
 from q2_mlab.db.schema import RegressionScore
 from q2_mlab.plotting.components import (
@@ -41,15 +44,38 @@ drop_cols = ['artifact_uuid', 'datetime', 'CV_IDX', 'id']
 target_map = {
     'age_v2': 'age',
     'BL_AGE': 'age',
+    'age': 'age',
     'bmi_v2': 'bmi',
     'BMI': 'bmi',
+    'bmi': 'bmi'
 }
+
+with pkg_resources.resource_stream(
+    __name__, "standard_deviations.json"
+) as f:
+    TARGET_SD = json.load(f)
+
+
+def _get_standardized_mae(df_row, norm_dict):
+    """
+    """
+    mae = df_row['MAE']
+    target = df_row['target']
+    dataset = df_row['dataset']
+    cv_fold = df_row['CV_IDX']
+    level = df_row['level']
+    key = f"({dataset}, {target}, {level}, {cv_fold})"
+    sd = norm_dict.get(key, 1)
+    standardized_mae = mae / sd
+    return standardized_mae
 
 
 def process_db_df(df):
     # remap values for consistency
     df['level'] = df['level'].replace('none', 'MG')
     df['target'] = df['target'].map(target_map)
+    df['standardized_MAE'] = df.apply(_get_standardized_mae, axis=1,
+                                      args=(TARGET_SD,))
 
     group_stats = df.drop(
         drop_cols, axis=1
@@ -319,6 +345,14 @@ class AlgorithmScatter(Mediator, Plottable):
         datasets = sorted(df['dataset'].unique())
         targets = sorted(df['target'].unique())
         plot_width = 600
+        self.line_segment_pairs = {
+            'level': ['16S', 'MG'],
+            'target': ['age', 'bmi'],
+        }
+        dataset_combinations = combinations(["finrisk", "imsms", "sol"], r=2)
+        for dataset_pair in dataset_combinations:
+            d1, d2 = dataset_pair
+            self.line_segment_pairs[f"{d1}-to-{d2}"] = [d1, d2]
 
         categorical_variables = ['parameters_id', 'target', 'algorithm',
                                  'level', 'dataset']
