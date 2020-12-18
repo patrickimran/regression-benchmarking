@@ -20,5 +20,6 @@ install:
   - make install
 script:
   - make test-cov
+  - ./scripts/run-tests.sh
 after_success:
   - coveralls
