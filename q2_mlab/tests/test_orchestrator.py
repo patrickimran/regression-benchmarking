@@ -19,20 +19,19 @@ class OrchestratorTests(unittest.TestCase):
             self.TEST_DIR, "data/sample-metadata.tsv"
         )
 
-        target = "reported-antibiotic-usage"
-        dataset = self.dataset
-        prep = "16S"
-        alg = "LinearSVR"
+        self.target = "reported-antibiotic-usage"
+        self.prep = "16S"
+        self.alg = "LinearSVR"
 
         (
             self.script_fp,
             self.params_fp,
             self.run_info_fp,
         ) = orchestrate_hyperparameter_search(
-            dataset=dataset,
-            preparation=prep,
-            target=target,
-            algorithm=alg,
+            dataset=self.dataset,
+            preparation=self.prep,
+            target=self.target,
+            algorithm=self.alg,
             base_dir=self.TEST_DIR,
             dataset_path=self.dataset_file,
             metadata_path=self.metadata_file,
@@ -54,7 +53,8 @@ class OrchestratorTests(unittest.TestCase):
         subprocess.run(["chmod", "755", self.test_script])
 
     def tearDown(self):
-        # Remove files we generated.
+
+        # Remove files we generated
         files_generated = [
             self.script_fp,
             self.params_fp,
@@ -64,10 +64,20 @@ class OrchestratorTests(unittest.TestCase):
         for file in files_generated:
             if file and os.path.exists(file):
                 os.remove(file)
-
-        # Remove the directory structure created by Orchestrator
-        if os.path.exists(os.path.join(self.TEST_DIR, self.dataset)):
-            shutil.rmtree(os.path.join(self.TEST_DIR, self.dataset))
+        
+        # Remove parameter subset lists
+        results_dir = os.path.join(
+            self.TEST_DIR, self.dataset, self.prep, self.target, self.alg
+        )
+        for subset_file in os.listdir(results_dir):
+            os.remove(os.path.join(results_dir, subset_file))
+        os.removedirs(results_dir)
+        
+        # Remove the barnacle output directory
+        error_dir = os.path.join(
+            self.TEST_DIR, self.dataset, "barnacle_output/"
+        )
+        os.rmdir(error_dir)
 
     def testDryRun(self):
 

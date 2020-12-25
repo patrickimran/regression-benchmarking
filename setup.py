@@ -28,7 +28,11 @@ setup(
     },
     package_data={'q2_mlab': ['assets/index.html',
                               'citations.bib',
-                              'templates/array_job_template.sh']},
+                              'templates/*',
+                              'tests/data/*',
+                              'tests/dset_test/*'
+                              ]
+    },
     zip_safe=False,
     install_requires=[
         'xgboost',

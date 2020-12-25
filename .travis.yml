@@ -20,5 +20,6 @@ install:
   - make install
 script:
   - make test-cov
+  - ./q2_mlab/scripts/test_orchestrator_cli.sh
 after_success:
   - coveralls
