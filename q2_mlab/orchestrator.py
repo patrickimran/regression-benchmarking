@@ -24,7 +24,7 @@ def orchestrate_hyperparameter_search(
     reduced=False,
     force=False,
     dry=False,
-    dataset_path=None,
+    table_path=None,
     metadata_path=None,
 ):
     """
@@ -40,7 +40,7 @@ def orchestrate_hyperparameter_search(
                     target (str): Name of the target variable in the metadata
                     algorithm (str): Valid algorithm included in q2_mlab
                     base_dir (str): The directory in which create the file structure.
-                    dataset_path (str): Specify exact path to dataset, if it cannot be assumed. Default=None
+                    table_path (str): Specify exact path to dataset, if it cannot be assumed. Default=None
                     metadata_path (str): Specify exact path to metadata, if it cannot be assumed. Default=None
                     repeats (int): Number of CV repeats. Default=3
                     ppn: Processors per node for job script. Default=1
@@ -96,8 +96,8 @@ def orchestrate_hyperparameter_search(
     FORCE = str(force).lower()
 
     # Use user-specified path, otherwise assume path from Preprocessing
-    if dataset_path:
-        TABLE_FP = dataset_path
+    if table_path:
+        TABLE_FP = table_path
     else:
         TABLE_FP = path.join(
             base_dir,
@@ -217,47 +217,64 @@ def orchestrate_hyperparameter_search(
     "--repeats",
     "-r",
     default=3,
+    show_default=True,
     help="Number of CV repeats",
 )
 @click.option(
     "--ppn",
     default=1,
+    show_default=True,
     help="Processors per node for job script",
 )
 @click.option(
     "--memory",
     default=32,
+    show_default=True,
     help="GB of memory for job script",
 )
 @click.option(
     "--wall",
     default=50,
+    show_default=True,
     help="Walltime in hours for job script",
 )
 @click.option(
     "--chunk_size",
     default=100,
+    show_default=True,
     help="Number of params to run in one job for job script",
 )
 @click.option(
     "--randomize/--no-randomize",
     default=True,
+    show_default=True,
     help="Randomly shuffle the order of the hyperparameter list",
 )
 @click.option(
     "--reduced/--no-reduced",
     default=False,
+    show_default=True,
     help="If a reduced parameter grid is available, run the reduced grid.",
 )
 @click.option(
     "--force/--no-force",
     default=False,
+    show_default=True,
     help="Overwrite existing results.",
 )
 @click.option(
     "--dry/--wet",
     default=False,
+    show_default=True,
     help="Perform a dry run without writing files.",
+)
+@click.option(
+    "--table_path",
+    help="Path to feature table artifact from preprocess.",
+)
+@click.option(
+    "--metadata_path",
+    help="Path to target metadata artifact from preprocess.",
 )
 def cli(
     dataset,
@@ -274,6 +291,8 @@ def cli(
     reduced,
     force,
     dry,
+    table_path,
+    metadata_path,
 ):
     orchestrate_hyperparameter_search(
         dataset=dataset,
@@ -290,6 +309,8 @@ def cli(
         reduced=reduced,
         force=force,
         dry=dry,
+        table_path=table_path,
+        metadata_path=metadata_path,
     )
 
 

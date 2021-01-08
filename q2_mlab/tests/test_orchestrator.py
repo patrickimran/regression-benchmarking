@@ -33,7 +33,7 @@ class OrchestratorTests(unittest.TestCase):
             target=self.target,
             algorithm=self.alg,
             base_dir=self.TEST_DIR,
-            dataset_path=self.dataset_file,
+            table_path=self.dataset_file,
             metadata_path=self.metadata_file,
             chunk_size=20,
             dry=False,
@@ -92,7 +92,7 @@ class OrchestratorTests(unittest.TestCase):
             target=target,
             algorithm=alg,
             base_dir=self.TEST_DIR,
-            dataset_path=self.dataset_file,
+            table_path=self.dataset_file,
             metadata_path=self.metadata_file,
             dry=True,
         )
