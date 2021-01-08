@@ -53,7 +53,9 @@ def orchestrate_hyperparameter_search(
                     dry: Perform a dry run without writing files. Default=False
 
             Returns:
-                    binary_sum (str): Binary string of the sum of a and b
+                    output_script (str): Filepath to the created job script
+                    PARAMS_FP (str): Filepath to the created hyperparameter list
+                    info_doc (str): Filepath to the created job info text file
     """
     classifiers = set(RegressionTask.algorithms.keys())
     regressors = set(ClassificationTask.algorithms.keys())
