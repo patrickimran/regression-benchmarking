@@ -223,11 +223,13 @@ class DBTestCase(unittest.TestCase):
         results = pd.DataFrame([
             {
                 'CV_IDX': 0, 'RUNTIME': 2.3, 'PROB_CLASS_0': 0.502,
-                'PROB_CLASS_1': 0.498, 'AUPRC': 0.3, 'AUROC': 0.3, 'F1': 0.0
+                'ACCURACY': 0.309, 'PROB_CLASS_1': 0.498, 'AUPRC': 0.3, 
+                'AUROC': 0.3, 'F1': 0.0, 'BALANCED_ACCURACY': 0.409
             },
             {
                 'CV_IDX': 1, 'RUNTIME': 2.9, 'PROB_CLASS_0': 0.603,
-                'PROB_CLASS_1': 0.397, 'AUPRC': 0.4, 'AUROC': 0.5, 'F1': 0.0
+                'ACCURACY': 0.309, 'PROB_CLASS_1': 0.397, 'AUPRC': 0.4, 
+                'AUROC': 0.5, 'F1': 0.0, 'BALANCED_ACCURACY': 0.409
             },
         ])
         dataset = 'FINRISK'
