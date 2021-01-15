@@ -32,7 +32,11 @@ def filter_duplicate_parameter_results(
     list_of_artifact_paths, results_dir, delete=False
 ):
     artifact_paths = list_of_artifact_paths.copy()
+
+    # Change working dirs
+    prev_working_dir = os.getcwd()
     os.chdir(results_dir)
+
     if len(artifact_paths) == 0:
         raise ValueError("There are no result artifacts to remove.")
     artifact_paths.sort()
@@ -62,6 +66,9 @@ def filter_duplicate_parameter_results(
         # Update current path
         curr_path = next_path
         curr_param_idx = next_param_idx
+    
+    # Change working dir back
+    os.chdir(prev_working_dir)
 
     return artifact_paths
 
@@ -131,7 +138,7 @@ def doctor_hyperparameter_search(
     uninserted_filenames = get_uninserted_results(results_dir)
     inserted_filenames = get_inserted_results(results_dir)
 
-    # TODO remove duplicate parameter indices
+    # Remove duplicate parameter indices
     if len(inserted_filenames) > 0:
         inserted_dir = os.path.join(results_dir, "inserted")
         inserted_filenames = filter_duplicate_parameter_results(
