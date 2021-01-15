@@ -153,7 +153,7 @@ def doctor_hyperparameter_search(
 
     missing_param_indices = expected_param_indices - all_param_indices
 
-    if missing_param_indices == 0:
+    if len(missing_param_indices) == 0:
         return None
 
     chunks_to_rerun = set()
