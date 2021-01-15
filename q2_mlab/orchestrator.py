@@ -269,11 +269,11 @@ def orchestrate_hyperparameter_search(
     help="Perform a dry run without writing files.",
 )
 @click.option(
-    "--table_path",
+    "--table-path",
     help="Path to feature table artifact from preprocess.",
 )
 @click.option(
-    "--metadata_path",
+    "--metadata-path",
     help="Path to target metadata artifact from preprocess.",
 )
 def cli(

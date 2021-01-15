@@ -188,9 +188,10 @@ def doctor_hyperparameter_search(
     help="Max number of result artifacts we expect per algorithm.",
 )
 @click.option(
-    "--delete_duplicates/--no_delete_duplicates",
+    "--delete-duplicates/--no-delete-duplicates",
     default=False,
-    help="Do not remove duplicate result artifacts.",
+    show_default=True,
+    help="Remove duplicate result artifacts.",
 )
 def cli(
     dataset,
