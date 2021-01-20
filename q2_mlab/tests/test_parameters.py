@@ -58,7 +58,7 @@ def create_synthetic_data(
 class ParameterGridsTests(unittest.TestCase):
 
     regression_algorithms = [
-        Ensemble
+        # Ensemble
         "RandomForestRegressor",
         "ExtraTreesRegressor",
         # Boosting
