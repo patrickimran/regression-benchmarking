@@ -110,7 +110,18 @@ class LearningTask(ABC):
             # so we can access that step's parameters.
             newparams = {prefix + key: val for key, val in self.params.items()}
             self.params = newparams
-        self.X = table.transpose().matrix_data
+        
+        # Convert to dense array for HistGradientBoosting
+        table_data = table.transpose().matrix_data
+        dense_only_algorithms = {
+            "HistGradientBoostingClassifier",
+            "HistGradientBoostingRegressor"
+        }
+        if algorithm in dense_only_algorithms:
+            self.X = table_data.todense()
+        else:
+            self.X = table_data
+
         self.metadata = metadata
         self.y = self.metadata.to_numpy()
         self.distance_matrix = distance_matrix

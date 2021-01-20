@@ -60,7 +60,7 @@ class ParameterGrids:
             "alpha": [1e-3, 1e-2, 1e-1, 0.5, 0.9],
             "learning_rate": [3e-1, 2e-1, 1e-1, 5e-2],
             "n_estimators": n_estimators,
-            "criterion": ["friedman_mse", "mse" "mae"],
+            "criterion": ["friedman_mse", "mse", "mae"],
             "max_features": [None, "sqrt", "log2", 0.2, 0.4, 0.6, 0.8],
             "max_depth": max_depth,
             "random_state": random_state,
@@ -68,10 +68,9 @@ class ParameterGrids:
         },
         "GradientBoostingClassifier": {
             "loss": ["deviance", "exponential"],
-            "alpha": [1e-3, 1e-2, 1e-1, 0.5, 0.9],
             "learning_rate": [3e-1, 2e-1, 1e-1, 1e-2],
             "n_estimators": n_estimators,
-            "criterion": ["friedman_mse", "mse" "mae"],
+            "criterion": ["friedman_mse", "mse", "mae"],
             "max_features": [None, "sqrt", "log2", 0.2, 0.4, 0.6, 0.8],
             "max_depth": max_depth,
             "random_state": random_state,
@@ -244,6 +243,7 @@ class ParameterGrids:
         "RadialSVC": {
             "C": [1e-4, 1e-3, 1e-2, 1e-1, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7],
             "gamma": ["scale", "auto", 100, 10, 1, 1e-2, 1e-3, 1e-4, 1e-5],
+            "probability": [True],
         },
         "SigmoidSVR": {
             "C": [1e-4, 1e-3, 1e-2, 1e-1, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7],
@@ -255,6 +255,7 @@ class ParameterGrids:
             "C": [1e-4, 1e-3, 1e-2, 1e-1, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7],
             "gamma": ["scale", "auto", 100, 10, 1, 1e-2, 1e-3, 1e-4, 1e-5],
             "coef0": [0, 1, 10, 100],
+            "probability": [True],
         },
         "RidgeClassifier": [
             {
@@ -262,7 +263,7 @@ class ParameterGrids:
                 "fit_intercept": [True],
                 "normalize": [True, False],
                 "tol": [1e-1, 1e-2, 1e-3],
-                "solver": ["sparse_cg", "saga"],
+                "solver": ["sparse_cg"],
                 "random_state": random_state,
             },
             {
@@ -270,7 +271,7 @@ class ParameterGrids:
                 "fit_intercept": [False],
                 "normalize": [True, False],
                 "tol": [1e-1, 1e-2, 1e-3],
-                "solver": ["svd", "cholesky", "lsqr"],
+                "solver": ["cholesky", "lsqr", "saga"],
                 "random_state": random_state,
             },
         ],
@@ -352,110 +353,10 @@ class ParameterGrids:
         },
     }
 
-    reduced_ensemble_grids = {
-        "RandomForestClassifier": {
-            "n_estimators": [10, 100, 1000],
-            "criterion": ["gini"],
-            "max_features": ["sqrt", "log2", None, 0.4, 0.6],
-            "max_samples": [0.25, 0.5, 0.75, None],
-            "max_depth": [None, 10, 100],
-            "n_jobs": n_jobs,
-            "random_state": random_state,
-            "bootstrap": [True],
-        },
-        "RandomForestRegressor": {
-            "n_estimators": [10, 100, 1000],
-            "criterion": ["mse"],
-            "max_features": ["sqrt", "log2", None, 0.4, 0.6],
-            "max_samples": [0.25, 0.5, 0.75, None],
-            "max_depth": [None, 10, 100],
-            "n_jobs": n_jobs,
-            "random_state": random_state,
-            "bootstrap": [True],
-        },
-        "GradientBoostingRegressor": {
-            "loss": ["ls", "lad", "huber", "quantile"],
-            "alpha": [1e-3, 1e-1, 0.5, 0.9],
-            "learning_rate": [3e-1, 1e-1, 5e-2],
-            "n_estimators": [1000, 5000],
-            "criterion": ["mse"],
-            "max_features": [None, "sqrt", "log2", 0.4, 0.6],
-            "max_depth": [None, 10, 100],
-            "random_state": random_state,
-        },
-        "GradientBoostingClassifier": {
-            "loss": ["deviance", "exponential"],
-            "learning_rate": [3e-1, 1e-1, 5e-2],
-            "n_estimators": [1000, 5000],
-            "criterion": ["mse"],
-            "max_features": [None, "sqrt", "log2", 0.4, 0.6],
-            "max_depth": [None, 10, 100],
-            "random_state": random_state,
-        },
-        "XGBRegressor": {
-            "max_depth": [None, 10, 100],
-            "learning_rate": [3e-1, 2e-1, 1e-1, 5e-2],
-            "n_estimators": [5000],
-            "objective": ["reg:linear"],
-            "booster": ["gbtree"],
-            "gamma": [0],
-            "reg_alpha": [1e-3, 1e-1, 1],
-            "reg_lambda": [1e-3, 1e-1, 1],
-            "random_state": random_state,
-            "silent": [1],
-            "n_jobs": n_jobs,
-        },
-        "XGBClassifier": {
-            "max_depth": [None, 10, 100],
-            "learning_rate": [3e-1, 2e-1, 1e-1, 5e-2],
-            "n_estimators": [1000, 5000],
-            "objective": ["reg:linear"],
-            "booster": ["gbtree"],
-            "gamma": [0],
-            "reg_alpha": [1e-3, 1e-1, 1],
-            "reg_lambda": [1e-3, 1e-1, 1],
-            "random_state": random_state,
-            "silent": [1],
-            "n_jobs": n_jobs,
-        },
-        "ExtraTreesClassifier": {
-            "n_estimators": [5000],
-            "criterion": ["gini"],
-            "max_features": [None, "sqrt", "log2", 0.4, 0.6],
-            "max_samples": [0.25, 0.5, 0.75, None],
-            "max_depth": [None],
-            "n_jobs": n_jobs,
-            "random_state": random_state,
-            "bootstrap": [True],
-        },
-        "ExtraTreesRegressor": {
-            "n_estimators": [5000],
-            "criterion": ["mse"],
-            "max_features": [None, "sqrt", "log2", 0.4, 0.6],
-            "max_samples": [0.25, 0.5, 0.75, None],
-            "max_depth": [None],
-            "n_jobs": [-1],
-            "random_state": random_state,
-            "bootstrap": [True],
-        },
-    }
-
-    def get_size(algorithm, reduced=False):
-        if reduced:
-            grid = ParameterGrids.get_reduced(algorithm)
-        else:
-            grid = ParameterGrids.get(algorithm)
+    def get_size(algorithm):
+        grid = ParameterGrids.get(algorithm)
         size = len(list(ParameterGrid(grid)))
         return size
 
     def get(algorithm):
         return ParameterGrids.full_grids[algorithm]
-
-    def get_reduced(algorithm):
-        # Updates the full parameter grids with reduced grids for just
-        # the ensemble methods
-        fullgrid_shallow_copy = ParameterGrids.full_grids.copy()
-        fullgrid_shallow_copy.update(
-            ParameterGrids.reduced_ensemble_grids
-        )
-        return fullgrid_shallow_copy[algorithm]
