@@ -6,6 +6,7 @@ import pandas as pd
 from q2_mlab import (
     orchestrate_hyperparameter_search,
     doctor_hyperparameter_search,
+    sort_result_artifact_filenames,
     parse_info,
     get_results,
     filter_duplicate_parameter_results,
@@ -115,6 +116,29 @@ class DoctorTests(unittest.TestCase):
         for file in os.listdir(self.results_dir):
             os.remove(os.path.join(self.results_dir, file))
         os.removedirs(self.results_dir)
+
+    def test_sort_result_artifact_filenames(self):
+        artifact_filenames = [
+            "00002_AlgorithmName_chunk_01.qza",
+            "0001_AlgorithmName_chunk_01.qza",
+            "000003_AlgorithmName_chunk_01.qza",
+            "004_AlgorithmName_chunk_01.qza",
+            "007_AlgorithmName_chunk_01.qza",
+            "0006_AlgorithmName_chunk_01.qza",
+            "5_AlgorithmName_chunk_01.qza",
+        ]
+        sorted_results = sort_result_artifact_filenames(artifact_filenames)
+
+        expected_artifact_filenames = [
+            "0001_AlgorithmName_chunk_01.qza",
+            "00002_AlgorithmName_chunk_01.qza",
+            "000003_AlgorithmName_chunk_01.qza",
+            "004_AlgorithmName_chunk_01.qza",
+            "5_AlgorithmName_chunk_01.qza",
+            "0006_AlgorithmName_chunk_01.qza",
+            "007_AlgorithmName_chunk_01.qza",
+        ]
+        self.assertListEqual(sorted_results, expected_artifact_filenames)
 
     def test_parse_info(self):
         info_dict = parse_info(self.run_info_fp)

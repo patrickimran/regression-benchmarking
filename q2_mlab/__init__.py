@@ -16,6 +16,7 @@ from ._parameters import ParameterGrids
 from .orchestrator import orchestrate_hyperparameter_search
 from .doctor import (
     doctor_hyperparameter_search,
+    sort_result_artifact_filenames,
     parse_info, 
     get_results,
     filter_duplicate_parameter_results
@@ -31,6 +32,7 @@ __all__ = [
     "_unit_benchmark",
     "orchestrate_hyperparameter_search",
     "doctor_hyperparameter_search",
+    "sort_result_artifact_filenames",
     "parse_info", 
     "get_results",
     "filter_duplicate_parameter_results",

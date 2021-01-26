@@ -4,6 +4,22 @@ import os
 from datetime import datetime
 
 
+def sort_result_artifact_filenames(list_of_artifact_filenames):
+    """
+    Sorts the given list of result filenames by parameter index (assumed to be
+    the beginning of the filename, preceding an underscore e.g. 00004_*.qza)
+
+            Parameters:
+                    list_of_artifact_filenames (List): A list of artifact filenames returned by get_results()
+            Returns:
+                    sorted_artifact_filenames (List): Sorted list of the found artifact filenames
+    """
+    temp_list = [(int(f.split("_")[0]), f) for f in list_of_artifact_filenames]
+    temp_list.sort()
+    sorted_artifact_filenames = [f[1] for f in temp_list]
+    return sorted_artifact_filenames
+
+
 def parse_info(info_filepath):
     with open(info_filepath) as f:
         lines = f.readlines()
@@ -58,7 +74,7 @@ def filter_duplicate_parameter_results(
 
     if len(artifact_filenames) == 0:
         raise ValueError("There are no result artifacts to remove.")
-    artifact_filenames.sort()
+    artifact_filenames = sort_result_artifact_filenames(artifact_filenames)
 
     curr_path = artifact_filenames[0]
     curr_param_idx = int(curr_path.split("_")[0])
