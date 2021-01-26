@@ -17,8 +17,7 @@ from .orchestrator import orchestrate_hyperparameter_search
 from .doctor import (
     doctor_hyperparameter_search,
     parse_info, 
-    get_uninserted_results,
-    get_inserted_results,
+    get_results,
     filter_duplicate_parameter_results
 )
 
@@ -33,8 +32,7 @@ __all__ = [
     "orchestrate_hyperparameter_search",
     "doctor_hyperparameter_search",
     "parse_info", 
-    "get_uninserted_results",
-    "get_inserted_results",
+    "get_results",
     "filter_duplicate_parameter_results",
     "ResultsDirectoryFormat",
     "ResultsFormat",

@@ -14,37 +14,58 @@ def parse_info(info_filepath):
     return info_dict
 
 
-def get_uninserted_results(results_dir):
-    return [f.name for f in os.scandir(results_dir) if f.path.endswith(".qza")]
+def get_results(results_dir):
+    """
+    Scans the given directory and returns a list of filenames of all QIIME2 
+    Artifacts in the directory.
 
-
-def get_inserted_results(results_dir):
-    inserted_dir = os.path.join(results_dir, "inserted")
-    if not os.path.isdir(inserted_dir):
-        return []
-    else:
-        return [
-            f.name for f in os.scandir(inserted_dir) if f.path.endswith(".qza")
+            Parameters:
+                    results_dir (str): The directory containing result Artifacts.
+            Returns:
+                    artifact_filenames (List): List of the found Artifact filenames
+    """
+    if os.path.isdir(results_dir):
+        artifact_filenames =  [
+            f.name for f in os.scandir(results_dir) if f.path.endswith(".qza")
         ]
+    else:
+        artifact_filenames = []
+    return artifact_filenames
 
 
 def filter_duplicate_parameter_results(
-    list_of_artifact_paths, results_dir, delete=False
+    list_of_artifact_filenames, results_dir, delete=False
 ):
-    artifact_paths = list_of_artifact_paths.copy()
+    """
+    From a sorted list of artifact filenames (sorted by parameter index),
+    compare neighboring artifacts and if they are duplicate results on the same
+    parameter index, either ignore (delete=False) or delete (delete=True) the 
+    older of the two duplicate results.
+
+            Parameters:
+                    list_of_artifact_filenames (List): A list of artifact filenames returned by get_results()
+                    results_dir (str): The directory containing result artifacts.
+                    delete (bool): Delete the duplicate results, or ignore them if False
+            Returns:
+                    artifact_filenames (list): List of the artifact filenames, excluding duplicated results
+    """
+
+    artifact_filenames = list_of_artifact_filenames.copy()
 
     # Change working dirs
     prev_working_dir = os.getcwd()
     os.chdir(results_dir)
 
-    if len(artifact_paths) == 0:
+    if len(artifact_filenames) == 0:
         raise ValueError("There are no result artifacts to remove.")
-    artifact_paths.sort()
+    artifact_filenames.sort()
 
-    curr_path = artifact_paths[0]
+    curr_path = artifact_filenames[0]
     curr_param_idx = int(curr_path.split("_")[0])
 
-    for next_path in artifact_paths[1:]:
+    # From the list of filenames (sorted by parameter index), check if neighboring
+    # filenames are of the same parameter index.
+    for next_path in artifact_filenames[1:]:
         next_param_idx = int(next_path.split("_")[0])
         if next_param_idx == curr_param_idx:
             # Remove the older of the duplicate results
@@ -55,11 +76,11 @@ def filter_duplicate_parameter_results(
                 os.stat(next_path).st_mtime
             )
             if curr_path_time < next_path_time:
-                artifact_paths.remove(curr_path)
+                artifact_filenames.remove(curr_path)
                 if delete:
                     os.remove(curr_path)
             else:
-                artifact_paths.remove(next_path)
+                artifact_filenames.remove(next_path)
                 if delete:
                     os.remove(next_path)
                 continue  # Do not update current_path
@@ -70,7 +91,7 @@ def filter_duplicate_parameter_results(
     # Change working dir back
     os.chdir(prev_working_dir)
 
-    return artifact_paths
+    return artifact_filenames
 
 
 def doctor_hyperparameter_search(
@@ -98,7 +119,6 @@ def doctor_hyperparameter_search(
             Returns:
                     summary (str): Summary of errors and jobs relaunched/to be relaunched
     """
-    barnacle_out_dir = os.path.join(base_dir, dataset, "barnacle_output/")
     results_dir = os.path.join(
         base_dir, dataset, preparation, target, algorithm
     )
@@ -114,10 +134,6 @@ def doctor_hyperparameter_search(
     if not os.path.isdir(base_dir):
         msg = "Cannot find directory with result file structure. This is typically generated with 'orchestrator'.\n"
         raise FileNotFoundError(msg + base_dir + " does not exist.")
-
-    if not os.path.isdir(barnacle_out_dir):
-        msg = "Cannot find directory with job output. This is typically generated with 'orchestrator'.\n"
-        raise FileNotFoundError(msg + barnacle_out_dir + " does not exist.")
 
     if not os.path.isdir(results_dir):
         msg = "Cannot find directory with results. This is typically generated with 'qiime mlab unit_benchmark'\n"
@@ -135,12 +151,12 @@ def doctor_hyperparameter_search(
     info_dict = parse_info(info_doc)
 
     # Get all filenames in the results directory
-    uninserted_filenames = get_uninserted_results(results_dir)
-    inserted_filenames = get_inserted_results(results_dir)
+    uninserted_filenames = get_results(results_dir)
+    inserted_dir = os.path.join(results_dir, "inserted")
+    inserted_filenames = get_results(inserted_dir)
 
     # Remove duplicate parameter indices
     if len(inserted_filenames) > 0:
-        inserted_dir = os.path.join(results_dir, "inserted")
         inserted_filenames = filter_duplicate_parameter_results(
             inserted_filenames, inserted_dir, delete=delete_duplicates
         )

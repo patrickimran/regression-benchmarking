@@ -116,11 +116,11 @@ class ParameterGridsTests(unittest.TestCase):
             n_samples=16, n_features=4, task=Task.CLASSIFICATION,
         )
 
-    # def test_coverage(self):
-    #     self.assertCountEqual(
-    #         list(ParameterGrids.full_grids.keys()),
-    #         self.classification_algorithms+self.regression_algorithms
-    #     )
+    def test_coverage(self):
+        self.assertCountEqual(
+            list(ParameterGrids.full_grids.keys()),
+            self.classification_algorithms+self.regression_algorithms
+        )
 
     def test_regression_param_grids(self, algorithms=None):
         if algorithms is None:

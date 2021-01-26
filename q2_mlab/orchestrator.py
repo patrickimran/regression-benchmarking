@@ -40,7 +40,7 @@ def orchestrate_hyperparameter_search(
                     target (str): Name of the target variable in the metadata
                     algorithm (str): Valid algorithm included in q2_mlab
                     base_dir (str): The directory in which create the file structure.
-                    table_path (str): Specify exact path to dataset, if it cannot be assumed. Default=None
+                    table_path (str): Specify exact path to feature table, if it cannot be assumed. Default=None
                     metadata_path (str): Specify exact path to metadata, if it cannot be assumed. Default=None
                     repeats (int): Number of CV repeats. Default=3
                     ppn: Processors per node for job script. Default=1

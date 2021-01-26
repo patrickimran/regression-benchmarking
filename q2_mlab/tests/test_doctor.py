@@ -7,8 +7,7 @@ from q2_mlab import (
     orchestrate_hyperparameter_search,
     doctor_hyperparameter_search,
     parse_info,
-    get_uninserted_results,
-    get_inserted_results,
+    get_results,
     filter_duplicate_parameter_results,
 )
 
@@ -131,19 +130,20 @@ class DoctorTests(unittest.TestCase):
         self.assertDictEqual(info_dict, expected_dict)
 
     def test_get_uninserted_results(self):
-        results_list = get_uninserted_results(self.results_dir)
+        results_list = get_results(self.results_dir)
         for fname in results_list:
             self.assertTrue(fname.endswith(".qza"))
         self.assertEqual(len(results_list), 110)
 
     def test_get_inserted_results(self):
-        results_list = get_inserted_results(self.results_dir)
+        inserted_dir = os.path.join(self.results_dir, "inserted")
+        results_list = get_results(inserted_dir)
         for fname in results_list:
             self.assertTrue(fname.endswith(".qza"))
         self.assertEqual(len(results_list), 2)
 
     def test_filter_duplicate_parameter_results(self):
-        results_list = get_uninserted_results(self.results_dir)
+        results_list = get_results(self.results_dir)
         self.assertEqual(len(results_list), 110)
         self.assertTrue(
             set(self.newer_duplicate_results).issubset(set(results_list))
@@ -169,7 +169,7 @@ class DoctorTests(unittest.TestCase):
         )
         self.assertEqual(len(filtered_results_list), 106)
         # This should now not see any uninserted results.
-        results_list = get_uninserted_results(self.results_dir)
+        results_list = get_results(self.results_dir)
         self.assertEqual(len(results_list), 106)
         self.assertTrue(
             set(self.newer_duplicate_results).issubset(set(results_list))
