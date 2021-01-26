@@ -56,7 +56,7 @@ class DoctorTests(unittest.TestCase):
         ]
         for dupe in self.older_duplicate_results:
             open(os.path.join(self.results_dir, dupe), "a").close()
-        
+
         # Populate results directory with empty results
         remove_indices = {1, 21, 41, 101}  # Chunk 1, 2, 3, 6
         param_indices = [i for i in range(1, 113) if i not in remove_indices]
@@ -66,8 +66,8 @@ class DoctorTests(unittest.TestCase):
             artifact_name = f"{param_idx_str}_{self.alg}_chunk_{chunk_num}.qza"
             artifact_path = os.path.join(self.results_dir, artifact_name)
             open(artifact_path, "a").close()
-        
-        # Add newer duplicate results 
+
+        # Add newer duplicate results
         self.newer_duplicate_results = [
             "00000026_LinearSVR_chunk_999.qza",
             "00000027_LinearSVR_chunk_999.qza",
@@ -86,7 +86,6 @@ class DoctorTests(unittest.TestCase):
             uninserted_path = os.path.join(self.results_dir, artifact)
             inserted_path = os.path.join(inserted_dir, artifact)
             os.rename(uninserted_path, inserted_path)
-
 
     def tearDown(self):
 
@@ -154,13 +153,17 @@ class DoctorTests(unittest.TestCase):
             results_list, self.results_dir, delete=False
         )
         self.assertEqual(len(filtered_results_list), 106)
-        
+
         # Assert that we kept the newer duplicates,  discarded the older
         self.assertTrue(
-            set(self.newer_duplicate_results).issubset(set(filtered_results_list))
+            set(self.newer_duplicate_results).issubset(
+                set(filtered_results_list)
+            )
         )
         self.assertFalse(
-            set(self.older_duplicate_results).issubset(set(filtered_results_list))
+            set(self.older_duplicate_results).issubset(
+                set(filtered_results_list)
+            )
         )
 
         # With removing duplicated files:
@@ -178,21 +181,15 @@ class DoctorTests(unittest.TestCase):
             set(self.older_duplicate_results).issubset(set(results_list))
         )
 
-
     def test_doctor_hyperparameter_search(self):
         cmd = doctor_hyperparameter_search(
-            dataset=self.dataset, 
-            preparation=self.prep, 
-            target=self.target, 
-            algorithm=self.alg, 
-            base_dir=self.TEST_DIR, 
+            dataset=self.dataset,
+            preparation=self.prep,
+            target=self.target,
+            algorithm=self.alg,
+            base_dir=self.TEST_DIR,
             max_results=1000,
-            delete_duplicates=False
+            delete_duplicates=False,
         )
 
-        self.assertEqual(
-            cmd,
-            f"qsub -t 1,2,3,6 {self.script_fp}"
-        )
-
-
+        self.assertEqual(cmd, f"qsub -t 1,2,3,6 {self.script_fp}")

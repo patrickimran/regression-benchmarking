@@ -16,16 +16,16 @@ def parse_info(info_filepath):
 
 def get_results(results_dir):
     """
-    Scans the given directory and returns a list of filenames of all QIIME2 
-    Artifacts in the directory.
+    Scans the given directory and returns a list of filenames of all QIIME2
+    artifacts in the directory.
 
             Parameters:
-                    results_dir (str): The directory containing result Artifacts.
+                    results_dir (str): The directory containing result artifacts.
             Returns:
-                    artifact_filenames (List): List of the found Artifact filenames
+                    artifact_filenames (List): List of the found artifact filenames
     """
     if os.path.isdir(results_dir):
-        artifact_filenames =  [
+        artifact_filenames = [
             f.name for f in os.scandir(results_dir) if f.path.endswith(".qza")
         ]
     else:
@@ -39,7 +39,7 @@ def filter_duplicate_parameter_results(
     """
     From a sorted list of artifact filenames (sorted by parameter index),
     compare neighboring artifacts and if they are duplicate results on the same
-    parameter index, either ignore (delete=False) or delete (delete=True) the 
+    parameter index, either ignore (delete=False) or delete (delete=True) the
     older of the two duplicate results.
 
             Parameters:
@@ -87,7 +87,7 @@ def filter_duplicate_parameter_results(
         # Update current path
         curr_path = next_path
         curr_param_idx = next_param_idx
-    
+
     # Change working dir back
     os.chdir(prev_working_dir)
 
