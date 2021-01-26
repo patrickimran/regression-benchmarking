@@ -14,6 +14,7 @@ from ._type import Target, Results
 from ._format import ResultsDirectoryFormat, ResultsFormat
 from ._parameters import ParameterGrids
 from .orchestrator import orchestrate_hyperparameter_search
+from .collector import collect_hyperparameter_search
 
 __version__ = get_versions()["version"]
 
@@ -24,6 +25,7 @@ __all__ = [
     "unit_benchmark",
     "_unit_benchmark",
     "orchestrate_hyperparameter_search",
+    "collect_hyperparameter_search",
     "ResultsDirectoryFormat",
     "ResultsFormat",
     "Target",
