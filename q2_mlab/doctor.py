@@ -2,43 +2,58 @@
 import click
 import os
 from datetime import datetime
+import pandas as pd
 
 
 def sort_result_artifact_filenames(list_of_artifact_filenames):
-    """
-    Sorts the given list of result filenames by parameter index (assumed to be
-    the beginning of the filename, preceding an underscore e.g. 00004_*.qza)
+    """Sort the result artifact filenames
 
-            Parameters:
-                    list_of_artifact_filenames (List): A list of artifact filenames returned by get_results()
-            Returns:
-                    sorted_artifact_filenames (List): Sorted list of the found artifact filenames
+    Sorts the given list of result filenames by parameter index (assumed to be
+    the beginning of the filename, preceding an underscore e.g. 
+    ``00004_*.qza``)
+    
+    Parameters
+    ----------
+    list_of_artifact_filenames : List
+        A list of artifact filenames returned by the ``get_results`` method
+
+    Returns
+    -------
+    sorted_artifact_filenames : List
+        Sorted list of the found artifact filenames
+
+    See Also
+    --------
+    q2_mlab.doctor.get_results
+
     """
-    temp_list = [(int(f.split("_")[0]), f) for f in list_of_artifact_filenames]
-    temp_list.sort()
-    sorted_artifact_filenames = [f[1] for f in temp_list]
+    sorted_artifact_filenames = sorted(
+        list_of_artifact_filenames,
+        key=lambda name: int(name.split('_')[0])
+    )
     return sorted_artifact_filenames
 
 
 def parse_info(info_filepath):
-    with open(info_filepath) as f:
-        lines = f.readlines()
-        info_dict = {
-            key.strip(): val.strip()
-            for key, val in zip(lines[0].split(","), lines[1].split(","))
-        }
-    return info_dict
+    return pd.read_csv(info_filepath).to_dict('records')[0]
 
 
 def get_results(results_dir):
-    """
+    """Get result artifact filenames
+    
     Scans the given directory and returns a list of filenames of all QIIME2
     artifacts in the directory.
 
-            Parameters:
-                    results_dir (str): The directory containing result artifacts.
-            Returns:
-                    artifact_filenames (List): List of the found artifact filenames
+    Parameters
+    ----------
+    results_dir : str
+        The directory containing result artifacts.
+
+    Returns
+    -------
+    artifact_filenames : List
+        A List of the found artifact filenames.
+
     """
     if os.path.isdir(results_dir):
         artifact_filenames = [
@@ -52,18 +67,28 @@ def get_results(results_dir):
 def filter_duplicate_parameter_results(
     list_of_artifact_filenames, results_dir, delete=False
 ):
-    """
+    """Filter out duplicate results on the same parameter set
+    
     From a sorted list of artifact filenames (sorted by parameter index),
     compare neighboring artifacts and if they are duplicate results on the same
     parameter index, either ignore (delete=False) or delete (delete=True) the
     older of the two duplicate results.
 
-            Parameters:
-                    list_of_artifact_filenames (List): A list of artifact filenames returned by get_results()
-                    results_dir (str): The directory containing result artifacts.
-                    delete (bool): Delete the duplicate results, or ignore them if False
-            Returns:
-                    artifact_filenames (list): List of the artifact filenames, excluding duplicated results
+    Parameters
+    ----------
+    list_of_artifact_filenames : List 
+        A list of artifact filenames returned by get_results()
+    results_dir : str
+        The directory containing result artifacts.
+    delete : bool, optional
+        Delete the duplicate results if ``True``, or ignore them if 
+        ``False``.
+
+    Returns
+    -------
+    artifact_filenames : List
+        List of the artifact filenames, excluding duplicated results.
+
     """
 
     artifact_filenames = list_of_artifact_filenames.copy()
@@ -119,21 +144,51 @@ def doctor_hyperparameter_search(
     max_results=1000,
     delete_duplicates=False,
 ):
-    """
+    """Identify jobs to relaunch to generate missing result artifacts
+    
     Searches for the job description file for the experiment described by
     this function's parameters, searches through the files produced for
     missing results, and relaunches jobs necessary for completing those results.
 
-            Parameters:
-                    dataset (str): Name of dataset
-                    preparation (str): Name of data type/preparation (e.g. 16S)
-                    target (str): Name of the target variable in the metadata
-                    algorithm (str): Valid algorithm included in q2_mlab
-                    base_dir (str): The directory in which create the file structure.
-                    max_results (str): The maximum number of result artifacts to expect.
-                    delete_duplicates (bool): If True, deletes the older of duplicated results on the same parameter id.
-            Returns:
-                    summary (str): Summary of errors and jobs relaunched/to be relaunched
+    Parameters
+    ----------
+    dataset : str
+        Name of dataset.
+    preparation : str
+        Name of data type/preparation (e.g. 16S).
+    target : str 
+        Name of the target variable in the metadata.
+    algorithm : str
+        Valid algorithm included in q2_mlab.
+    base_dir : str
+        The directory in which create the file structure.
+    max_results : str, optional
+        The maximum number of result artifacts to expect. Defaults to 1000.
+    delete_duplicates : bool, optional
+        If ``True``, deletes the older of duplicate results on the same 
+        parameter id. Defaults to ``False`` where duplicate results are
+        ignored.
+
+    Returns
+    -------
+    cmd : str
+        Command to regenerate missing artifacts.
+
+    Raises
+    ------
+    FileNotFoundError
+        If ``base_dir`` does not exist.
+    FileNotFoundError
+        If directory with results for this experiement does not exist.
+    FileNotFoundError
+        If the job script for this experiment does not exist.
+    FileNotFoundError
+        If the info file for this experiment does not exist.
+
+    See Also
+    --------
+    q2_mlab.orchestrator.orchestrate_hyperparameter_search
+
     """
     results_dir = os.path.join(
         base_dir, dataset, preparation, target, algorithm
@@ -148,19 +203,19 @@ def doctor_hyperparameter_search(
     )
 
     if not os.path.isdir(base_dir):
-        msg = "Cannot find directory with result file structure. This is typically generated with 'orchestrator'.\n"
+        msg = "Cannot find directory with result file structure. This is typically generated with 'mlab-orchestrator'.\n"
         raise FileNotFoundError(msg + base_dir + " does not exist.")
 
     if not os.path.isdir(results_dir):
-        msg = "Cannot find directory with results. This is typically generated with 'qiime mlab unit_benchmark'\n"
+        msg = "Cannot find directory with results. This is typically generated with 'mlab-orchestrator' or 'qiime mlab unit_benchmark'\n"
         raise FileNotFoundError(msg + results_dir + " does not exist.")
 
     if not os.path.exists(output_script):
-        msg = "Cannot find the job script for this experiment. This is typically generated with 'orchestrator'\n"
+        msg = "Cannot find the job script for this experiment. This is typically generated with 'mlab-orchestrator'\n"
         raise FileNotFoundError(msg + output_script + " does not exist.")
 
     if not os.path.exists(info_doc):
-        msg = "Cannot find info file for this experiment. This is typically generated with 'orchestrator'\n"
+        msg = "Cannot find info file for this experiment. This is typically generated with 'mlab-orchestrator'\n"
         raise FileNotFoundError(msg + info_doc + " does not exist.")
 
     # Parse info doc for expected result info
@@ -183,7 +238,7 @@ def doctor_hyperparameter_search(
 
     # Compute missing parameter indices:
     expected_num_results = min(
-        max_results, int(info_dict["parameter_space_size"])
+        max_results, info_dict["parameter_space_size"]
     )
     expected_param_indices = set(range(1, expected_num_results + 1))
 
@@ -198,14 +253,13 @@ def doctor_hyperparameter_search(
     chunks_to_rerun = set()
     for missing_idx in missing_param_indices:
         # Identify which chunk to run:
-        chunk_size = int(info_dict["chunk_size"])
+        chunk_size = info_dict["chunk_size"]
         missing_chunk = (missing_idx // chunk_size) + 1
         chunks_to_rerun.add(missing_chunk)
 
     # Return command to re-run missing chunks
     cmd = f"qsub -t {','.join(map(str, chunks_to_rerun))} {output_script}"
     print(cmd)
-    # subprocess.run(cmd)
     return cmd
 
 

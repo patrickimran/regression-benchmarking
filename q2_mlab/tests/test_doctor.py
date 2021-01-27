@@ -144,10 +144,10 @@ class DoctorTests(unittest.TestCase):
         info_dict = parse_info(self.run_info_fp)
         expected_dict = {
             "parameters_fp": self.params_fp,
-            "parameter_space_size": "112",
-            "chunk_size": "20",
-            "remainder": "12",
-            "n_chunks": "6",
+            "parameter_space_size": 112,
+            "chunk_size": 20,
+            "remainder": 12,
+            "n_chunks": 6,
         }
 
         self.assertDictEqual(info_dict, expected_dict)
