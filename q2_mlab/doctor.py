@@ -254,7 +254,7 @@ def doctor_hyperparameter_search(
     for missing_idx in missing_param_indices:
         # Identify which chunk to run:
         chunk_size = info_dict["chunk_size"]
-        missing_chunk = (missing_idx // chunk_size) + 1
+        missing_chunk = ((missing_idx-1) // chunk_size) + 1
         chunks_to_rerun.add(missing_chunk)
 
     # Return command to re-run missing chunks

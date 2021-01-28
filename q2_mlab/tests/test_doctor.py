@@ -78,7 +78,8 @@ class DoctorTests(unittest.TestCase):
 
         # Move "inserted" results
         inserted_dir = os.path.join(self.results_dir, "inserted")
-        os.mkdir(inserted_dir)
+        if not os.path.isdir(inserted_dir):
+            os.mkdir(inserted_dir)
         to_insert = [
             "00000110_LinearSVR_chunk_1.qza",
             "00000106_LinearSVR_chunk_1.qza",
@@ -217,3 +218,48 @@ class DoctorTests(unittest.TestCase):
         )
 
         self.assertEqual(cmd, f"qsub -t 1,2,3,6 {self.script_fp}")
+    
+
+    def test_doctor_with_all_missing_results(self):
+
+        this_alg = "ExtraTreesClassifier"
+        (
+            this_script_fp,
+            this_params_fp,
+            this_run_info_fp,
+        ) = orchestrate_hyperparameter_search(
+            dataset=self.dataset,
+            preparation=self.prep,
+            target=self.target,
+            algorithm=this_alg,
+            base_dir=self.TEST_DIR,
+            table_path=self.dataset_file,
+            metadata_path=self.metadata_file,
+            chunk_size=self.chunk_size,
+            dry=False,
+        )
+        cmd = doctor_hyperparameter_search(
+            dataset=self.dataset,
+            preparation=self.prep,
+            target=self.target,
+            algorithm=this_alg,
+            base_dir=self.TEST_DIR,
+            max_results=1000,
+            delete_duplicates=False,
+        )
+        expected_chunks = ",".join([str(i) for i in range(1,51)])
+        self.assertEqual(cmd, f"qsub -t {expected_chunks} {this_script_fp}")
+
+        # Remove files we generated
+        files_generated = [
+            this_script_fp,
+            this_params_fp,
+            this_run_info_fp,
+        ]
+        for file in files_generated:
+            if file and os.path.exists(file):
+                os.remove(file)
+        this_results_dir = os.path.join(
+            self.TEST_DIR, self.dataset, self.prep, self.target, this_alg
+        )
+        os.removedirs(this_results_dir)
