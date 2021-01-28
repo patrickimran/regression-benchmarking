@@ -150,7 +150,23 @@ class DoctorTests(unittest.TestCase):
             "remainder": 12,
             "n_chunks": 6,
         }
+        self.assertDictEqual(info_dict, expected_dict)
 
+        with open("temp_info.txt", "w") as f:
+            f.write(
+                "parameters_fp, parameter_space_size, chunk_size, remainder, "
+                + "n_chunks\n"
+                + "./sol/MG/bmi_v2/alg/alg_params.txt, 5580, 20, 0, 279"
+            )
+        info_dict = parse_info("temp_info.txt")
+        os.remove("temp_info.txt")
+        expected_dict = {
+            "parameters_fp": "./sol/MG/bmi_v2/alg/alg_params.txt",
+            "parameter_space_size": 5580,
+            "chunk_size": 20,
+            "remainder": 0,
+            "n_chunks": 279,
+        }
         self.assertDictEqual(info_dict, expected_dict)
 
     def test_get_uninserted_results(self):
@@ -218,7 +234,6 @@ class DoctorTests(unittest.TestCase):
         )
 
         self.assertEqual(cmd, f"qsub -t 1,2,3,6 {self.script_fp}")
-    
 
     def test_doctor_with_all_missing_results(self):
 
@@ -247,7 +262,7 @@ class DoctorTests(unittest.TestCase):
             max_results=1000,
             delete_duplicates=False,
         )
-        expected_chunks = ",".join([str(i) for i in range(1,51)])
+        expected_chunks = ",".join([str(i) for i in range(1, 51)])
         self.assertEqual(cmd, f"qsub -t {expected_chunks} {this_script_fp}")
 
         # Remove files we generated

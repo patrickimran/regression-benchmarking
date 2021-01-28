@@ -9,9 +9,9 @@ def sort_result_artifact_filenames(list_of_artifact_filenames):
     """Sort the result artifact filenames
 
     Sorts the given list of result filenames by parameter index (assumed to be
-    the beginning of the filename, preceding an underscore e.g. 
+    the beginning of the filename, preceding an underscore e.g.
     ``00004_*.qza``)
-    
+
     Parameters
     ----------
     list_of_artifact_filenames : List
@@ -28,19 +28,20 @@ def sort_result_artifact_filenames(list_of_artifact_filenames):
 
     """
     sorted_artifact_filenames = sorted(
-        list_of_artifact_filenames,
-        key=lambda name: int(name.split('_')[0])
+        list_of_artifact_filenames, key=lambda name: int(name.split("_")[0])
     )
     return sorted_artifact_filenames
 
 
 def parse_info(info_filepath):
-    return pd.read_csv(info_filepath).to_dict('records')[0]
+    return pd.read_csv(info_filepath, skipinitialspace=True).to_dict(
+        "records"
+    )[0]
 
 
 def get_results(results_dir):
     """Get result artifact filenames
-    
+
     Scans the given directory and returns a list of filenames of all QIIME2
     artifacts in the directory.
 
@@ -68,7 +69,7 @@ def filter_duplicate_parameter_results(
     list_of_artifact_filenames, results_dir, delete=False
 ):
     """Filter out duplicate results on the same parameter set
-    
+
     From a sorted list of artifact filenames (sorted by parameter index),
     compare neighboring artifacts and if they are duplicate results on the same
     parameter index, either ignore (delete=False) or delete (delete=True) the
@@ -76,12 +77,12 @@ def filter_duplicate_parameter_results(
 
     Parameters
     ----------
-    list_of_artifact_filenames : List 
+    list_of_artifact_filenames : List
         A list of artifact filenames returned by get_results()
     results_dir : str
         The directory containing result artifacts.
     delete : bool, optional
-        Delete the duplicate results if ``True``, or ignore them if 
+        Delete the duplicate results if ``True``, or ignore them if
         ``False``.
 
     Returns
@@ -145,7 +146,7 @@ def doctor_hyperparameter_search(
     delete_duplicates=False,
 ):
     """Identify jobs to relaunch to generate missing result artifacts
-    
+
     Searches for the job description file for the experiment described by
     this function's parameters, searches through the files produced for
     missing results, and relaunches jobs necessary for completing those results.
@@ -156,7 +157,7 @@ def doctor_hyperparameter_search(
         Name of dataset.
     preparation : str
         Name of data type/preparation (e.g. 16S).
-    target : str 
+    target : str
         Name of the target variable in the metadata.
     algorithm : str
         Valid algorithm included in q2_mlab.
@@ -165,7 +166,7 @@ def doctor_hyperparameter_search(
     max_results : str, optional
         The maximum number of result artifacts to expect. Defaults to 1000.
     delete_duplicates : bool, optional
-        If ``True``, deletes the older of duplicate results on the same 
+        If ``True``, deletes the older of duplicate results on the same
         parameter id. Defaults to ``False`` where duplicate results are
         ignored.
 
@@ -237,9 +238,7 @@ def doctor_hyperparameter_search(
         )
 
     # Compute missing parameter indices:
-    expected_num_results = min(
-        max_results, info_dict["parameter_space_size"]
-    )
+    expected_num_results = min(max_results, info_dict["parameter_space_size"])
     expected_param_indices = set(range(1, expected_num_results + 1))
 
     all_filenames = inserted_filenames + uninserted_filenames
@@ -254,7 +253,7 @@ def doctor_hyperparameter_search(
     for missing_idx in missing_param_indices:
         # Identify which chunk to run:
         chunk_size = info_dict["chunk_size"]
-        missing_chunk = ((missing_idx-1) // chunk_size) + 1
+        missing_chunk = ((missing_idx - 1) // chunk_size) + 1
         chunks_to_rerun.add(missing_chunk)
 
     # Return command to re-run missing chunks
