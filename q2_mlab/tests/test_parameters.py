@@ -5,6 +5,7 @@ import tqdm
 import random
 import math
 import os
+import biom
 from itertools import cycle
 from q2_mlab.learningtask import RegressionTask, ClassificationTask
 from q2_mlab._parameters import ParameterGrids
@@ -32,6 +33,14 @@ def create_synthetic_data(
     # clear nans that come from division of all 0 rows
     is_nan = np.isnan(X)
     X[is_nan] = 0
+
+    # Convert to biom table and return its sparse matrix representation
+    table = biom.Table(
+        data=X,
+        observation_ids=list(range(0, X.shape[0])),
+        sample_ids=list(range(0, X.shape[1]))
+    )
+    X = table.matrix_data
 
     if task == Task.REGRESSION:
         # We can assume non-negative target variables, a requirement for
@@ -113,40 +122,45 @@ class ParameterGridsTests(unittest.TestCase):
             self.classification_algorithms+self.regression_algorithms
         )
 
-    def test_reduced_regression_param_grids(self, algorithms=None):
+    def test_regression_param_grids(self, algorithms=None):
         if algorithms is None:
             algorithms = self.regression_algorithms
         task = RegressionTask
         self._test_grids(
-            self.X_reg, self.y_reg, algorithms, task, reduced=True
+            self.X_reg, self.y_reg, algorithms, task,
         )
 
-    def test_reduced_classification_param_grids(self, algorithms=None):
+    def test_classification_param_grids(self, algorithms=None):
         if algorithms is None:
             algorithms = self.classification_algorithms
         task = ClassificationTask
         self._test_grids(
-            self.X_class, self.y_class, algorithms, task, reduced=True
+            self.X_class, self.y_class, algorithms, task,
         )
 
-    def _test_grids(self, X, y, algorithms, task, reduced):
+    def _test_grids(self, X, y, algorithms, task):
         total_its = sum(
-                ParameterGrids.get_size(
-                    alg, reduced=reduced
-                ) for alg in algorithms
+                ParameterGrids.get_size(alg) for alg in algorithms
         )
         if self.reduced_hyperparameter_space:
             total_its = sum(
                 math.ceil(
-                    self.reduced_size*ParameterGrids.get_size(
-                        alg, reduced=reduced
-                    )
+                    self.reduced_size*ParameterGrids.get_size(alg)
                 ) for alg in algorithms
             )
         with tqdm.tqdm(total=total_its) as pbar:
             for alg in algorithms:
+                
+                # Convert to dense array for HistGradientBoosting
+                dense_only_algorithms = {
+                    "HistGradientBoostingClassifier",
+                    "HistGradientBoostingRegressor"
+                }
+                if alg in dense_only_algorithms:
+                    X = X.todense()
+
                 estimator_cls = task.algorithms[alg]
-                grid = ParameterGrids.get_reduced(alg)
+                grid = ParameterGrids.get(alg)
                 param_list = list(ParameterGrid(grid))
                 if self.reduced_hyperparameter_space:
                     param_list = random.sample(

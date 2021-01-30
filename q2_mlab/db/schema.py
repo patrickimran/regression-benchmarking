@@ -48,6 +48,7 @@ class ClassificationScore(Base, Score):
     F1 = Column(Float)
     PROB_CLASS_0 = Column(Float)
     PROB_CLASS_1 = Column(Float)
+    BALANCED_ACCURACY = Column(Float)
 
     parameters_id = Column(Integer, ForeignKey('parameters.id'))
 

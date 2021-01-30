@@ -21,7 +21,8 @@ setup(
     url="https://qiime2.org",
     entry_points={
         'qiime2.plugins': ['q2-mlab=q2_mlab.plugin_setup:plugin'],
-        'console_scripts': ['orchestrator=q2_mlab.orchestrator:cli',
+        'console_scripts': ['mlab-orchestrator=q2_mlab.orchestrator:cli',
+                            'mlab-doctor=q2_mlab.doctor:cli',
                             'mlab-db=q2_mlab.db.cli:mlab_db',
                             'mlab-plotting=q2_mlab.plotting.app:mlab_plotting',
                             ],
