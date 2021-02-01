@@ -3,8 +3,7 @@ import click
 import os
 from q2_mlab import (
      parse_info,
-     get_uninserted_results,
-     get_inserted_results,
+     get_results,
      filter_duplicate_parameter_results,
  )
 from q2_mlab.db.maint import (
@@ -73,24 +72,6 @@ def collect_hyperparameter_search(
     if not os.path.exists(info_doc):
         msg = "Cannot find info file for this experiment. This is typically generated with 'orchestrator'\n"
         raise FileNotFoundError(msg + info_doc + " does not exist.")
-
-    # Parse info doc for expected result info
-    info_dict = parse_info(info_doc)
-
-    # Get all filenames in the results directory
-    uninserted_filenames = get_uninserted_results(results_dir)
-    inserted_filenames = get_inserted_results(results_dir)
-
-    # Remove duplicate parameter indices
-    if len(inserted_filenames) > 0:
-        inserted_dir = os.path.join(results_dir, "inserted")
-        inserted_filenames = filter_duplicate_parameter_results(
-            inserted_filenames, inserted_dir, delete=delete_duplicates
-        )
-    if len(uninserted_filenames) > 0:
-        uninserted_filenames = filter_duplicate_parameter_results(
-            uninserted_filenames, results_dir, delete=delete_duplicates
-        )
 
 
 @click.command()
