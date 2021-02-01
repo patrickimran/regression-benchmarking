@@ -289,7 +289,7 @@ class ParameterGrids:
                 "fit_intercept": [False],
                 "normalize": [True, False],
                 "tol": [1e-1, 1e-2, 1e-3],
-                "solver": ["svd", "cholesky", "lsqr"],
+                "solver": ["cholesky", "lsqr"],
                 "random_state": random_state,
             },
         ],

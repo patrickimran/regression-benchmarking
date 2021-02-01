@@ -7,7 +7,7 @@ from q2_mlab import (
      get_inserted_results,
      filter_duplicate_parameter_results,
  )
- from q2_mlab.db.maint import (
+from q2_mlab.db.maint import (
     create as db_create,
     add_from_qza, 
     add
