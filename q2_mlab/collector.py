@@ -25,113 +25,112 @@ def collect_hyperparameter_search(
      database_file,
      create_db=False
  ):
-     """
-     Trawls through the result files for the configuration described by
-     this function's parameters, and inserts results into the given SQLite3
-     database.
-     
-             Parameters:
-                     dataset (str): Name of dataset
-                     preparation (str): Name of data type/preparation (e.g. 16S)
-                     target (str): Name of the target variable in the metadata
-                     algorithm (str): Valid algorithm included in q2_mlab
-                     base_dir (str): The directory in which create the file structure.
-                     database_file (str): Path to the database file.
-                     create_db (bool): If true, create a new database at the given filepath. Default: False
-             Returns:
-                     None
-     """
+    """
+    Trawls through the result files for the configuration described by
+    this function's parameters, and inserts results into the given SQLite3
+    database.
+    
+            Parameters:
+                    dataset (str): Name of dataset
+                    preparation (str): Name of data type/preparation (e.g. 16S)
+                    target (str): Name of the target variable in the metadata
+                    algorithm (str): Valid algorithm included in q2_mlab
+                    base_dir (str): The directory in which create the file structure.
+                    database_file (str): Path to the database file.
+                    create_db (bool): If true, create a new database at the given filepath. Default: False
+            Returns:
+                    None
+    """
+    barnacle_out_dir = os.path.join(base_dir, dataset, "barnacle_output/")
+    results_dir = os.path.join(
+        base_dir, dataset, preparation, target, algorithm
+    )
+    output_script = os.path.join(
+        base_dir, dataset, "_".join([preparation, target, algorithm]) + ".sh"
+    )
+    info_doc = os.path.join(
+        base_dir,
+        dataset,
+        "_".join([preparation, target, algorithm]) + "_info.txt",
+    )
 
-     barnacle_out_dir = os.path.join(base_dir, dataset, "barnacle_output/")
-     results_dir = os.path.join(
-         base_dir, dataset, preparation, target, algorithm
-     )
-     output_script = os.path.join(
-         base_dir, dataset, "_".join([preparation, target, algorithm]) + ".sh"
-     )
-     info_doc = os.path.join(
-         base_dir,
-         dataset,
-         "_".join([preparation, target, algorithm]) + "_info.txt",
-     )
+    if not os.path.isdir(base_dir):
+        msg = "Cannot find directory with result file structure. This is typically generated with 'orchestrator'.\n"
+        raise FileNotFoundError(msg + base_dir + " does not exist.")
 
-     if not os.path.isdir(base_dir):
-         msg = "Cannot find directory with result file structure. This is typically generated with 'orchestrator'.\n"
-         raise FileNotFoundError(msg + base_dir + " does not exist.")
+    if not os.path.isdir(barnacle_out_dir):
+        msg = "Cannot find directory with job output. This is typically generated with 'orchestrator'.\n"
+        raise FileNotFoundError(msg + barnacle_out_dir + " does not exist.")
 
-     if not os.path.isdir(barnacle_out_dir):
-         msg = "Cannot find directory with job output. This is typically generated with 'orchestrator'.\n"
-         raise FileNotFoundError(msg + barnacle_out_dir + " does not exist.")
+    if not os.path.isdir(results_dir):
+        msg = "Cannot find directory with results. This is typically generated with 'qiime mlab unit_benchmark'\n"
+        raise FileNotFoundError(msg + results_dir + " does not exist.")
 
-     if not os.path.isdir(results_dir):
-         msg = "Cannot find directory with results. This is typically generated with 'qiime mlab unit_benchmark'\n"
-         raise FileNotFoundError(msg + results_dir + " does not exist.")
+    if not os.path.exists(output_script):
+        msg = "Cannot find the job script for this experiment. This is typically generated with 'orchestrator'\n"
+        raise FileNotFoundError(msg + output_script + " does not exist.")
 
-     if not os.path.exists(output_script):
-         msg = "Cannot find the job script for this experiment. This is typically generated with 'orchestrator'\n"
-         raise FileNotFoundError(msg + output_script + " does not exist.")
+    if not os.path.exists(info_doc):
+        msg = "Cannot find info file for this experiment. This is typically generated with 'orchestrator'\n"
+        raise FileNotFoundError(msg + info_doc + " does not exist.")
 
-     if not os.path.exists(info_doc):
-         msg = "Cannot find info file for this experiment. This is typically generated with 'orchestrator'\n"
-         raise FileNotFoundError(msg + info_doc + " does not exist.")
+    # Parse info doc for expected result info
+    info_dict = parse_info(info_doc)
 
-     # Parse info doc for expected result info
-     info_dict = parse_info(info_doc)
+    # Get all filenames in the results directory
+    uninserted_filenames = get_uninserted_results(results_dir)
+    inserted_filenames = get_inserted_results(results_dir)
 
-     # Get all filenames in the results directory
-     uninserted_filenames = get_uninserted_results(results_dir)
-     inserted_filenames = get_inserted_results(results_dir)
-
-     # Remove duplicate parameter indices
-     if len(inserted_filenames) > 0:
-         inserted_dir = os.path.join(results_dir, "inserted")
-         inserted_filenames = filter_duplicate_parameter_results(
-             inserted_filenames, inserted_dir, delete=delete_duplicates
-         )
-     if len(uninserted_filenames) > 0:
-         uninserted_filenames = filter_duplicate_parameter_results(
-             uninserted_filenames, results_dir, delete=delete_duplicates
-         )
+    # Remove duplicate parameter indices
+    if len(inserted_filenames) > 0:
+        inserted_dir = os.path.join(results_dir, "inserted")
+        inserted_filenames = filter_duplicate_parameter_results(
+            inserted_filenames, inserted_dir, delete=delete_duplicates
+        )
+    if len(uninserted_filenames) > 0:
+        uninserted_filenames = filter_duplicate_parameter_results(
+            uninserted_filenames, results_dir, delete=delete_duplicates
+        )
 
 
 @click.command()
- @click.argument("dataset")
- @click.argument("preparation")
- @click.argument("target")
- @click.argument("algorithm")
- @click.option(
-     "--base_dir",
-     "-b",
-     help="Directory to search for datasets in",
-     required=True,
- )
+@click.argument("dataset")
+@click.argument("preparation")
+@click.argument("target")
+@click.argument("algorithm")
 @click.option(
-     "--database",
-     "-db",
-     help="Path to the existing database file",
-     required=True,
- )
+    "--base_dir",
+    "-b",
+    help="Directory to search for datasets in",
+    required=True,
+)
 @click.option(
-     "--create-db/--no-create-db",
-     default=False,
-     show_default=True,
-     help="Create a new database at the given filepath if it does not exist",
- )
- def cli(
-     dataset,
-     preparation,
-     target,
-     algorithm,
-     base_dir,
-     database,
-     create_db,
- ):
-     collect_hyperparameter_search(
-        dataset=dataset,
-        preparation=preparation,
-        target=target,
-        algorithm=algorithm,
-        base_dir=base_dir,
-        database_file=database,
-        create_db=create_db
-    )
+    "--database",
+    "-db",
+    help="Path to the existing database file",
+    required=True,
+)
+@click.option(
+    "--create-db/--no-create-db",
+    default=False,
+    show_default=True,
+    help="Create a new database at the given filepath if it does not exist",
+)
+def cli(
+    dataset,
+    preparation,
+    target,
+    algorithm,
+    base_dir,
+    database,
+    create_db,
+):
+    collect_hyperparameter_search(
+    dataset=dataset,
+    preparation=preparation,
+    target=target,
+    algorithm=algorithm,
+    base_dir=base_dir,
+    database_file=database,
+    create_db=create_db
+)
