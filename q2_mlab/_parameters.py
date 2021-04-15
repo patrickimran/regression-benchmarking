@@ -281,7 +281,7 @@ class ParameterGrids:
                 "fit_intercept": [True],
                 "normalize": [True, False],
                 "tol": [1e-1, 1e-2, 1e-3],
-                "solver": ["sparse_cg", "saga"],
+                "solver": ["sparse_cg"],
                 "random_state": random_state,
             },
             {
@@ -289,7 +289,7 @@ class ParameterGrids:
                 "fit_intercept": [False],
                 "normalize": [True, False],
                 "tol": [1e-1, 1e-2, 1e-3],
-                "solver": ["cholesky", "lsqr"],
+                "solver": ["cholesky", "lsqr", "saga"],
                 "random_state": random_state,
             },
         ],
